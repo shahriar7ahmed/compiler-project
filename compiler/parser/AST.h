@@ -34,8 +34,10 @@ class LetStatement : public Statement {
 public:
     std::string identifier;
     std::unique_ptr<Expression> expression;
+    int line;
+    int column;
     
-    LetStatement(const std::string& id, std::unique_ptr<Expression> expr);
+    LetStatement(const std::string& id, std::unique_ptr<Expression> expr, int ln, int col);
     void print(int indent = 0) const override;
 };
 
@@ -61,8 +63,10 @@ public:
 class Variable : public Expression {
 public:
     std::string name;
+    int line;
+    int column;
     
-    explicit Variable(const std::string& n);
+    Variable(const std::string& n, int ln, int col);
     void print(int indent = 0) const override;
 };
 

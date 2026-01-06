@@ -83,7 +83,8 @@ std::unique_ptr<Statement> Parser::parseLetStatement() {
     
     expect(TokenType::SEMICOLON, "Expected ';' after expression");
     
-    return std::make_unique<LetStatement>(identifier.lexeme, std::move(expression));
+    return std::make_unique<LetStatement>(identifier.lexeme, std::move(expression), 
+                                          identifier.line, identifier.column);
 }
 
 std::unique_ptr<Statement> Parser::parsePrintStatement() {
@@ -147,7 +148,8 @@ std::unique_ptr<Expression> Parser::parseUnary() {
     
     // Variable
     if (match(TokenType::IDENTIFIER)) {
-        return std::make_unique<Variable>(previous().lexeme);
+        Token varToken = previous();
+        return std::make_unique<Variable>(varToken.lexeme, varToken.line, varToken.column);
     }
     
     // Parenthesized expression

@@ -10,8 +10,8 @@ static void printIndent(int indent) {
 }
 
 // LetStatement implementation
-LetStatement::LetStatement(const std::string& id, std::unique_ptr<Expression> expr)
-    : identifier(id), expression(std::move(expr)) {}
+LetStatement::LetStatement(const std::string& id, std::unique_ptr<Expression> expr, int ln, int col)
+    : identifier(id), expression(std::move(expr)), line(ln), column(col) {}
 
 void LetStatement::print(int indent) const {
     printIndent(indent);
@@ -44,7 +44,8 @@ void IntegerLiteral::print(int indent) const {
 }
 
 // Variable implementation
-Variable::Variable(const std::string& n) : name(n) {}
+Variable::Variable(const std::string& n, int ln, int col) 
+    : name(n), line(ln), column(col) {}
 
 void Variable::print(int indent) const {
     printIndent(indent);
