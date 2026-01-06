@@ -111,17 +111,47 @@ Token Lexer::nextToken() {
         return readIdentifierOrKeyword();
     }
     
-    // Single-character tokens
+    // Operators and punctuation
     advance();
     switch (c) {
         case '+': return Token(TokenType::PLUS, "+", line, startColumn);
         case '-': return Token(TokenType::MINUS, "-", line, startColumn);
         case '*': return Token(TokenType::MULTIPLY, "*", line, startColumn);
         case '/': return Token(TokenType::DIVIDE, "/", line, startColumn);
-        case '=': return Token(TokenType::ASSIGN, "=", line, startColumn);
+        case '%': return Token(TokenType::MODULO, "%", line, startColumn);
         case '(': return Token(TokenType::LPAREN, "(", line, startColumn);
         case ')': return Token(TokenType::RPAREN, ")", line, startColumn);
         case ';': return Token(TokenType::SEMICOLON, ";", line, startColumn);
+        
+        // Two-character operators
+        case '=':
+            if (peek() == '=') {
+                advance();
+                return Token(TokenType::EQUAL_EQUAL, "==", line, startColumn);
+            }
+            return Token(TokenType::ASSIGN, "=", line, startColumn);
+        
+        case '<':
+            if (peek() == '=') {
+                advance();
+                return Token(TokenType::LESS_EQUAL, "<=", line, startColumn);
+            }
+            return Token(TokenType::LESS_THAN, "<", line, startColumn);
+        
+        case '>':
+            if (peek() == '=') {
+                advance();
+                return Token(TokenType::GREATER_EQUAL, ">=", line, startColumn);
+            }
+            return Token(TokenType::GREATER_THAN, ">", line, startColumn);
+        
+        case '!':
+            if (peek() == '=') {
+                advance();
+                return Token(TokenType::NOT_EQUAL, "!=", line, startColumn);
+            }
+            return Token(TokenType::INVALID, "!", line, startColumn);
+        
         default:
             return Token(TokenType::INVALID, std::string(1, c), line, startColumn);
     }

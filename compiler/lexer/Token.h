@@ -13,12 +13,21 @@ enum class TokenType {
     LET,
     PRINT,
     
-    // Operators
+    // Arithmetic Operators
     PLUS,
     MINUS,
     MULTIPLY,
     DIVIDE,
+    MODULO,
     ASSIGN,
+    
+    // Comparison Operators
+    LESS_THAN,
+    GREATER_THAN,
+    LESS_EQUAL,
+    GREATER_EQUAL,
+    EQUAL_EQUAL,
+    NOT_EQUAL,
     
     // Punctuation
     LPAREN,
@@ -52,7 +61,14 @@ inline std::string tokenTypeToString(TokenType type) {
         case TokenType::MINUS:       return "MINUS";
         case TokenType::MULTIPLY:    return "MULTIPLY";
         case TokenType::DIVIDE:      return "DIVIDE";
+        case TokenType::MODULO:      return "MODULO";
         case TokenType::ASSIGN:      return "ASSIGN";
+        case TokenType::LESS_THAN:   return "LESS_THAN";
+        case TokenType::GREATER_THAN: return "GREATER_THAN";
+        case TokenType::LESS_EQUAL:  return "LESS_EQUAL";
+        case TokenType::GREATER_EQUAL: return "GREATER_EQUAL";
+        case TokenType::EQUAL_EQUAL: return "EQUAL_EQUAL";
+        case TokenType::NOT_EQUAL:   return "NOT_EQUAL";
         case TokenType::LPAREN:      return "LPAREN";
         case TokenType::RPAREN:      return "RPAREN";
         case TokenType::SEMICOLON:   return "SEMICOLON";
