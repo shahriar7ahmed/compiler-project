@@ -2,7 +2,7 @@
 
 A complete **6-stage educational compiler** built from scratch in C++ to demonstrate how compilers work. This project takes source code through lexical analysis, parsing, semantic validation, optimization, code generation, and execution on a stack-based virtual machine.
 
-![Main Menu](file:///C:/Users/User/.gemini/antigravity/brain/394838c2-c935-43ce-9ec9-4cab7a6438fd/demo_main_menu_1767771998318.png)
+![Main Menu](images/Screenshot%202026-01-07%20135049.png)
 
 ## 🌟 Features
 
@@ -355,17 +355,22 @@ Execution:
 ### Main Menu
 Interactive menu for choosing input method:
 
-![Main Menu](file:///C:/Users/User/.gemini/antigravity/brain/394838c2-c935-43ce-9ec9-4cab7a6438fd/demo_main_menu_1767771998318.png)
+![Main Menu](images/Screenshot%202026-01-07%20135049.png)
+
+### Lexical Analysis Stage
+Shows tokenization of source code:
+
+![Lexical Analysis](images/Screenshot%202026-01-07%20135109.png)
 
 ### Code Optimization Stage
-Shows before/after AST with optimizations applied:
+Shows constant folding optimization:
 
-![Optimization](file:///C:/Users/User/.gemini/antigravity/brain/394838c2-c935-43ce-9ec9-4cab7a6438fd/demo_optimization_1767772008860.png)
+![Optimization](images/Screenshot%202026-01-07%20135121.png)
 
 ### Program Execution
 Final stage showing VM execution and output:
 
-![Execution](file:///C:/Users/User/.gemini/antigravity/brain/394838c2-c935-43ce-9ec9-4cab7a6438fd/demo_execution_output_1767772019411.png)
+![Execution](images/Screenshot%202026-01-07%20135130.png)
 
 ## 🎓 Educational Value
 
