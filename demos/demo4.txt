@@ -1,0 +1,4 @@
+let age = 25;
+let limit = 18;
+let isAdult = age >= limit;
+print isAdult;
