@@ -1,0 +1,11 @@
+let x = 15;
+
+if x > 10 {
+    print 1;
+} else {
+    print 0;
+}
+
+for i = 1 to 3 {
+    print i;
+}
