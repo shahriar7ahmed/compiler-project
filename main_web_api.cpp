@@ -75,6 +75,29 @@ std::string expressionToJSON(const Expression* expr) {
         json << "\"right\":" << expressionToJSON(binOp->right.get()) << "}";
         return json.str();
     }
+    else if (auto* compExpr = dynamic_cast<const ComparisonExpression*>(expr)) {
+        std::ostringstream json;
+        json << "{\"type\":\"ComparisonExpression\",";
+        json << "\"operator\":\"" << escapeJSON(compExpr->op) << "\",";
+        json << "\"left\":" << expressionToJSON(compExpr->left.get()) << ",";
+        json << "\"right\":" << expressionToJSON(compExpr->right.get()) << "}";
+        return json.str();
+    }
+    else if (auto* logicExpr = dynamic_cast<const LogicalExpression*>(expr)) {
+        std::ostringstream json;
+        json << "{\"type\":\"LogicalExpression\",";
+        json << "\"operator\":\"" << escapeJSON(logicExpr->op) << "\",";
+        json << "\"left\":" << expressionToJSON(logicExpr->left.get()) << ",";
+        json << "\"right\":" << expressionToJSON(logicExpr->right.get()) << "}";
+        return json.str();
+    }
+    else if (auto* unaryExpr = dynamic_cast<const UnaryExpression*>(expr)) {
+        std::ostringstream json;
+        json << "{\"type\":\"UnaryExpression\",";
+        json << "\"operator\":\"" << escapeJSON(unaryExpr->op) << "\",";
+        json << "\"operand\":" << expressionToJSON(unaryExpr->operand.get()) << "}";
+        return json.str();
+    }
     
     return "{\"type\":\"Unknown\"}";
 }
@@ -94,6 +117,47 @@ std::string astToJSON(const std::vector<std::unique_ptr<Statement>>& program) {
         else if (auto* printStmt = dynamic_cast<PrintStatement*>(program[i].get())) {
             json << "{\"type\":\"PrintStatement\",";
             json << "\"expression\":" << expressionToJSON(printStmt->expression.get()) << "}";
+        }
+        else if (auto* ifStmt = dynamic_cast<IfStatement*>(program[i].get())) {
+            json << "{\"type\":\"IfStatement\",";
+            json << "\"condition\":" << expressionToJSON(ifStmt->condition.get()) << ",";
+            json << "\"thenBlock\":[";
+            for (size_t j = 0; j < ifStmt->thenBlock.size(); ++j) {
+                if (j > 0) json << ",";
+                // Recursively serialize nested statements (simplified)
+                if (auto* nestedLet = dynamic_cast<LetStatement*>(ifStmt->thenBlock[j].get())) {
+                    json << "{\"type\":\"LetStatement\",\"identifier\":\"" << escapeJSON(nestedLet->identifier) << "\",\"expression\":" << expressionToJSON(nestedLet->expression.get()) << "}";
+                } else if (auto* nestedPrint = dynamic_cast<PrintStatement*>(ifStmt->thenBlock[j].get())) {
+                    json << "{\"type\":\"PrintStatement\",\"expression\":" << expressionToJSON(nestedPrint->expression.get()) << "}";
+                }
+            }
+            json << "],";
+            json << "\"elseBlock\":[";
+            for (size_t j = 0; j < ifStmt->elseBlock.size(); ++j) {
+                if (j > 0) json << ",";
+                if (auto* nestedLet = dynamic_cast<LetStatement*>(ifStmt->elseBlock[j].get())) {
+                    json << "{\"type\":\"LetStatement\",\"identifier\":\"" << escapeJSON(nestedLet->identifier) << "\",\"expression\":" << expressionToJSON(nestedLet->expression.get()) << "}";
+                } else if (auto* nestedPrint = dynamic_cast<PrintStatement*>(ifStmt->elseBlock[j].get())) {
+                    json << "{\"type\":\"PrintStatement\",\"expression\":" << expressionToJSON(nestedPrint->expression.get()) << "}";
+                }
+            }
+            json << "]}";
+        }
+        else if (auto* forStmt = dynamic_cast<ForStatement*>(program[i].get())) {
+            json << "{\"type\":\"ForStatement\",";
+            json << "\"variable\":\"" << escapeJSON(forStmt->variable) << "\",";
+            json << "\"start\":" << expressionToJSON(forStmt->start.get()) << ",";
+            json << "\"end\":" << expressionToJSON(forStmt->end.get()) << ",";
+            json << "\"body\":[";
+            for (size_t j = 0; j < forStmt->body.size(); ++j) {
+                if (j > 0) json << ",";
+                if (auto* nestedLet = dynamic_cast<LetStatement*>(forStmt->body[j].get())) {
+                    json << "{\"type\":\"LetStatement\",\"identifier\":\"" << escapeJSON(nestedLet->identifier) << "\",\"expression\":" << expressionToJSON(nestedLet->expression.get()) << "}";
+                } else if (auto* nestedPrint = dynamic_cast<PrintStatement*>(forStmt->body[j].get())) {
+                    json << "{\"type\":\"PrintStatement\",\"expression\":" << expressionToJSON(nestedPrint->expression.get()) << "}";
+                }
+            }
+            json << "]}";
         }
         else {
             json << "{\"type\":\"Unknown\"}";

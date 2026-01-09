@@ -207,12 +207,22 @@ function renderASTNode(node, depth, container, isLast = false) {
         nodeLabel = `LetStatement (${node.identifier || 'unnamed'})`;
     } else if (node.type === 'PrintStatement') {
         nodeLabel = 'PrintStatement';
+    } else if (node.type === 'IfStatement') {
+        nodeLabel = 'IfStatement';
+    } else if (node.type === 'ForStatement') {
+        nodeLabel = `ForLoop (${node.variable} = ${node.start?.value || '?'} to ${node.end?.value || '?'})`;
     } else if (node.type === 'IntegerLiteral') {
         nodeLabel = `IntegerLiteral (${node.value})`;
     } else if (node.type === 'Identifier') {
         nodeLabel = `Identifier (${node.name})`;
     } else if (node.type === 'BinaryOperation') {
         nodeLabel = `BinaryOp (${node.operator})`;
+    } else if (node.type === 'ComparisonExpression') {
+        nodeLabel = `Comparison (${node.operator})`;
+    } else if (node.type === 'LogicalExpression') {
+        nodeLabel = `Logical (${node.operator})`;
+    } else if (node.type === 'UnaryExpression') {
+        nodeLabel = `Unary (${node.operator})`;
     }
 
     const treeNode = createTreeNode(nodeLabel, depth);
@@ -221,9 +231,14 @@ function renderASTNode(node, depth, container, isLast = false) {
     const colors = {
         'LetStatement': 'var(--info)',
         'PrintStatement': 'var(--success)',
+        'IfStatement': 'var(--warning)',
+        'ForStatement': 'var(--accent-primary)',
         'IntegerLiteral': 'var(--warning)',
         'Identifier': 'var(--accent-light)',
         'BinaryOperation': 'var(--text-primary)',
+        'ComparisonExpression': 'var(--info)',
+        'LogicalExpression': 'var(--success)',
+        'UnaryExpression': 'var(--warning)',
     };
 
     const color = colors[nodeType] || 'var(--text-secondary)';
@@ -240,6 +255,49 @@ function renderASTNode(node, depth, container, isLast = false) {
         renderASTNode(node.value, depth + 1, container);
     }
 
+    // Control flow: condition
+    if (node.condition) {
+        renderASTNode(node.condition, depth + 1, container);
+    }
+
+    // Control flow: then/else blocks
+    if (node.thenBlock && Array.isArray(node.thenBlock)) {
+        const thenLabel = createTreeNode('then:', depth + 1);
+        thenLabel.style.color = 'var(--text-muted)';
+        thenLabel.style.fontStyle = 'italic';
+        container.appendChild(thenLabel);
+        node.thenBlock.forEach((stmt, i) => {
+            renderASTNode(stmt, depth + 2, container, i === node.thenBlock.length - 1);
+        });
+    }
+
+    if (node.elseBlock && Array.isArray(node.elseBlock) && node.elseBlock.length > 0) {
+        const elseLabel = createTreeNode('else:', depth + 1);
+        elseLabel.style.color = 'var(--text-muted)';
+        elseLabel.style.fontStyle = 'italic';
+        container.appendChild(elseLabel);
+        node.elseBlock.forEach((stmt, i) => {
+            renderASTNode(stmt, depth + 2, container, i === node.elseBlock.length - 1);
+        });
+    }
+
+    // For loop: body
+    if (node.body && Array.isArray(node.body)) {
+        const bodyLabel = createTreeNode('body:', depth + 1);
+        bodyLabel.style.color = 'var(--text-muted)';
+        bodyLabel.style.fontStyle = 'italic';
+        container.appendChild(bodyLabel);
+        node.body.forEach((stmt, i) => {
+            renderASTNode(stmt, depth + 2, container, i === node.body.length - 1);
+        });
+    }
+
+    // Unary expression: operand
+    if (node.operand) {
+        renderASTNode(node.operand, depth + 1, container);
+    }
+
+    // Binary/comparison/logical: left and right
     if (node.left) {
         renderASTNode(node.left, depth + 1, container);
     }
