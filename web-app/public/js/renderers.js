@@ -667,13 +667,28 @@ function renderExecution(data) {
         min-height: 100px;
     `;
 
-    // Add each output line
-    data.output.forEach(line => {
-        const outputLine = document.createElement('div');
-        outputLine.textContent = `> ${line}`;
-        outputLine.style.cssText = 'margin: 0.25rem 0;';
-        outputConsole.appendChild(outputLine);
-    });
+    // Parse output - API returns a string, split by newlines
+    let outputLines = [];
+    if (data.output && typeof data.output === 'string') {
+        // Split by newline and filter out empty lines
+        outputLines = data.output.split('\n').filter(line => line.trim() !== '');
+    }
+
+    // Check if there's any output to display
+    if (outputLines.length === 0) {
+        const noOutputMsg = document.createElement('div');
+        noOutputMsg.textContent = '(No output - program didn\'t print anything)';
+        noOutputMsg.style.cssText = 'color: var(--text-muted); font-style: italic;';
+        outputConsole.appendChild(noOutputMsg);
+    } else {
+        // Add each output line
+        outputLines.forEach(line => {
+            const outputLine = document.createElement('div');
+            outputLine.textContent = `> ${line}`;
+            outputLine.style.cssText = 'margin: 0.25rem 0;';
+            outputConsole.appendChild(outputLine);
+        });
+    }
 
     outputSection.appendChild(outputConsole);
     stageContent.appendChild(outputSection);
@@ -692,11 +707,11 @@ function renderExecution(data) {
     statsHeader.style.cssText = 'color: var(--text-primary); margin-bottom: 1rem;';
     statsBox.appendChild(statsHeader);
 
-    const instructionsExecuted = data.bytecode?.length || 0;
-    const outputLines = data.output.length;
+    const instructionsExecuted = data.instructionsExecuted || data.bytecode?.length || 0;
+    const outputLineCount = data.output ? data.output.split('\n').filter(l => l.trim() !== '').length : 0;
 
     statsBox.appendChild(createKeyValue('Instructions Executed', instructionsExecuted.toString()));
-    statsBox.appendChild(createKeyValue('Output Lines', outputLines.toString()));
+    statsBox.appendChild(createKeyValue('Output Lines', outputLineCount.toString()));
     statsBox.appendChild(createKeyValue('Exit Status', '✓ Success (0)'));
 
     stageContent.appendChild(statsBox);
