@@ -82,4 +82,66 @@ public:
     void print(int indent = 0) const override;
 };
 
+// Expression: comparison operation (left op right) - ==, !=, <, <=, >, >=
+class ComparisonExpression : public Expression {
+public:
+    std::unique_ptr<Expression> left;
+    std::string op;  // ==, !=, <, <=, >, >=
+    std::unique_ptr<Expression> right;
+    
+    ComparisonExpression(std::unique_ptr<Expression> l, const std::string& operation,
+                        std::unique_ptr<Expression> r);
+    void print(int indent = 0) const override;
+};
+
+// Expression: logical operation (left op right) - &&, ||
+class LogicalExpression : public Expression {
+public:
+    std::unique_ptr<Expression> left;
+    std::string op;  // &&, ||
+    std::unique_ptr<Expression> right;
+    
+    LogicalExpression(std::unique_ptr<Expression> l, const std::string& operation,
+                     std::unique_ptr<Expression> r);
+    void print(int indent = 0) const override;
+};
+
+// Expression: unary operation (op operand) - !
+class UnaryExpression : public Expression {
+public:
+    std::string op;  // !
+    std::unique_ptr<Expression> operand;
+    
+    UnaryExpression(const std::string& operation, std::unique_ptr<Expression> operand);
+    void print(int indent = 0) const override;
+};
+
+// Statement: if (condition) { thenBlock } else { elseBlock }
+class IfStatement : public Statement {
+public:
+    std::unique_ptr<Expression> condition;
+    std::vector<std::unique_ptr<Statement>> thenBlock;
+    std::vector<std::unique_ptr<Statement>> elseBlock;  // optional
+    
+    IfStatement(std::unique_ptr<Expression> cond,
+               std::vector<std::unique_ptr<Statement>> thenStmts,
+               std::vector<std::unique_ptr<Statement>> elseStmts = {});
+    void print(int indent = 0) const override;
+};
+
+// Statement: for variable = start to end { body }
+class ForStatement : public Statement {
+public:
+    std::string variable;
+    std::unique_ptr<Expression> start;
+    std::unique_ptr<Expression> end;
+    std::vector<std::unique_ptr<Statement>> body;
+    
+    ForStatement(const std::string& var,
+                std::unique_ptr<Expression> startExpr,
+                std::unique_ptr<Expression> endExpr,
+                std::vector<std::unique_ptr<Statement>> bodyStmts);
+    void print(int indent = 0) const override;
+};
+
 #endif
