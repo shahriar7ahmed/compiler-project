@@ -25,6 +25,10 @@ void SemanticAnalyzer::visitStatement(Statement* stmt) {
         visitLetStatement(letStmt);
     } else if (auto* printStmt = dynamic_cast<PrintStatement*>(stmt)) {
         visitPrintStatement(printStmt);
+    } else if (auto* ifStmt = dynamic_cast<IfStatement*>(stmt)) {
+        visitIfStatement(ifStmt);
+    } else if (auto* forStmt = dynamic_cast<ForStatement*>(stmt)) {
+        visitForStatement(forStmt);
     }
 }
 
@@ -54,6 +58,12 @@ void SemanticAnalyzer::visitPrintStatement(PrintStatement* stmt) {
 void SemanticAnalyzer::visitExpression(Expression* expr) {
     if (auto* binOp = dynamic_cast<BinaryOperation*>(expr)) {
         visitBinaryOperation(binOp);
+    } else if (auto* compExpr = dynamic_cast<ComparisonExpression*>(expr)) {
+        visitComparisonExpression(compExpr);
+    } else if (auto* logicExpr = dynamic_cast<LogicalExpression*>(expr)) {
+        visitLogicalExpression(logicExpr);
+    } else if (auto* unaryExpr = dynamic_cast<UnaryExpression*>(expr)) {
+        visitUnaryExpression(unaryExpr);
     } else if (auto* var = dynamic_cast<Variable*>(expr)) {
         visitVariable(var);
     } else if (auto* intLit = dynamic_cast<IntegerLiteral*>(expr)) {
@@ -78,4 +88,52 @@ void SemanticAnalyzer::visitVariable(Variable* expr) {
 void SemanticAnalyzer::visitIntegerLiteral(IntegerLiteral* expr) {
     // Integer literals are always valid
     (void)expr; // Suppress unused parameter warning
+}
+
+// NEW: Visit if statement
+void SemanticAnalyzer::visitIfStatement(IfStatement* stmt) {
+    // Visit condition
+    visitExpression(stmt->condition.get());
+    
+    // Visit then block
+    for (const auto& s : stmt->thenBlock) {
+        visitStatement(s.get());
+    }
+    
+    // Visit else block if present
+    for (const auto& s : stmt->elseBlock) {
+        visitStatement(s.get());
+    }
+}
+
+// NEW: Visit for statement
+void SemanticAnalyzer::visitForStatement(ForStatement* stmt) {
+    // Visit start and end expressions
+    visitExpression(stmt->start.get());
+    visitExpression(stmt->end.get());
+    
+    // Add loop variable to symbol table
+    symbolTable.declare(stmt->variable, 0, 0);  // Loop variables don't have specific line/col
+    
+    // Visit body
+    for (const auto& s : stmt->body) {
+        visitStatement(s.get());
+    }
+}
+
+// NEW: Visit comparison expression
+void SemanticAnalyzer::visitComparisonExpression(ComparisonExpression* expr) {
+    visitExpression(expr->left.get());
+    visitExpression(expr->right.get());
+}
+
+// NEW: Visit logical expression
+void SemanticAnalyzer::visitLogicalExpression(LogicalExpression* expr) {
+    visitExpression(expr->left.get());
+    visitExpression(expr->right.get());
+}
+
+// NEW: Visit unary expression
+void SemanticAnalyzer::visitUnaryExpression(UnaryExpression* expr) {
+    visitExpression(expr->operand.get());
 }

@@ -39,8 +39,13 @@ private:
     void visitStatement(Statement* stmt);
     void visitLetStatement(LetStatement* stmt);
     void visitPrintStatement(PrintStatement* stmt);
+    void visitIfStatement(IfStatement* stmt);          // NEW
+    void visitForStatement(ForStatement* stmt);        // NEW
     void visitExpression(Expression* expr);
     void visitBinaryOperation(BinaryOperation* expr);
+    void visitComparisonExpression(ComparisonExpression* expr);  // NEW
+    void visitLogicalExpression(LogicalExpression* expr);        // NEW
+    void visitUnaryExpression(UnaryExpression* expr);            // NEW
     void visitVariable(Variable* expr);
     void visitIntegerLiteral(IntegerLiteral* expr);
     
