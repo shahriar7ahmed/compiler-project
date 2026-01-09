@@ -511,19 +511,309 @@ function renderOptimization(data) {
     }
 }
 
+// ============================================
+// STAGE 5: Code Generation (Bytecode)
+// ============================================
 function renderBytecode(bytecode) {
     const stageContent = document.getElementById('stage-content');
-    stageContent.innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--text-secondary);">Stage 5: Bytecode renderer coming in Part 3...</div>';
+
+    // Add header
+    const header = createSectionHeader(
+        'Stage 5: Code Generation',
+        'Bytecode instructions for virtual machine execution'
+    );
+    stageContent.appendChild(header);
+
+    if (!bytecode || bytecode.length === 0) {
+        const noBytecode = createInfoBox('No bytecode generated', 'warning');
+        stageContent.appendChild(noBytecode);
+        return;
+    }
+
+    // Bytecode stats
+    const stats = document.createElement('div');
+    stats.style.cssText = 'margin: 1rem 0; display: flex; gap: 1rem;';
+    stats.appendChild(createKeyValue('Total Instructions', bytecode.length.toString()));
+    stageContent.appendChild(stats);
+
+    // Bytecode table
+    const headers = ['Address', 'Opcode', 'Operand', 'Description'];
+    const rows = bytecode.map((instr, index) => {
+        const address = `<code style="background: var(--bg-hover); padding: 0.25rem 0.5rem; border-radius: 0.25rem; color: var(--accent-light);">${index.toString().padStart(3, '0')}</code>`;
+
+        const opcodeBadge = `<span style="background: var(--accent-primary); color: white; padding: 0.25rem 0.75rem; border-radius: 0.25rem; font-size: 0.813rem; font-weight: 600; font-family: 'Fira Code', monospace;">${escapeHtml(instr.opcode)}</span>`;
+
+        let operand = '-';
+        let description = '';
+
+        if (instr.opcode === 'LOAD_CONST' && instr.operand !== undefined) {
+            operand = `<code style="background: var(--bg-tertiary); padding: 0.25rem 0.5rem; border-radius: 0.25rem;">${instr.operand}</code>`;
+            description = `Push constant ${instr.operand} onto stack`;
+        } else if (instr.opcode === 'STORE_VAR' && instr.variable) {
+            operand = `<code style="background: var(--bg-tertiary); padding: 0.25rem 0.5rem; border-radius: 0.25rem;">${escapeHtml(instr.variable)}</code>`;
+            description = `Store top of stack in variable "${escapeHtml(instr.variable)}"`;
+        } else if (instr.opcode === 'LOAD_VAR' && instr.variable) {
+            operand = `<code style="background: var(--bg-tertiary); padding: 0.25rem 0.5rem; border-radius: 0.25rem;">${escapeHtml(instr.variable)}</code>`;
+            description = `Push variable "${escapeHtml(instr.variable)}" onto stack`;
+        } else if (instr.opcode === 'ADD') {
+            description = 'Pop two values, add them, push result';
+        } else if (instr.opcode === 'SUB') {
+            description = 'Pop two values, subtract them, push result';
+        } else if (instr.opcode === 'MUL') {
+            description = 'Pop two values, multiply them, push result';
+        } else if (instr.opcode === 'DIV') {
+            description = 'Pop two values, divide them, push result';
+        } else if (instr.opcode === 'PRINT') {
+            description = 'Print top of stack to output';
+        } else if (instr.opcode === 'HALT') {
+            description = 'Stop program execution';
+        }
+
+        return [address, opcodeBadge, operand, description];
+    });
+
+    const table = createTable(headers, rows);
+
+    // Style the table
+    table.style.cssText = `
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+        background: var(--bg-secondary);
+        border-radius: 0.5rem;
+        overflow: hidden;
+        font-family: 'Fira Code', 'Consolas', monospace;
+    `;
+
+    const ths = table.querySelectorAll('th');
+    ths.forEach(th => {
+        th.style.cssText = `
+            background: var(--bg-tertiary);
+            padding: 0.75rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--bg-hover);
+        `;
+    });
+
+    const tds = table.querySelectorAll('td');
+    tds.forEach(td => {
+        td.style.cssText = `
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--bg-tertiary);
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        `;
+    });
+
+    stageContent.appendChild(table);
+
+    // Execution info
+    const infoBox = createInfoBox(
+        'Bytecode is ready for execution by the virtual machine!',
+        'success'
+    );
+    stageContent.appendChild(infoBox);
 }
 
+// ============================================
+// STAGE 6: Execution
+// ============================================
 function renderExecution(data) {
     const stageContent = document.getElementById('stage-content');
-    stageContent.innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--text-secondary);">Stage 6: Execution renderer coming in Part 3...</div>';
+
+    // Add header
+    const header = createSectionHeader(
+        'Stage 6: Program Execution',
+        'Virtual machine execution results'
+    );
+    stageContent.appendChild(header);
+
+    // Check if output exists
+    if (!data.output || data.output.length === 0) {
+        const noOutput = createInfoBox('No program output', 'info');
+        stageContent.appendChild(noOutput);
+        return;
+    }
+
+    // Success message
+    const successBox = createInfoBox(
+        '✓ Program executed successfully!',
+        'success'
+    );
+    stageContent.appendChild(successBox);
+
+    // Output section
+    const outputSection = document.createElement('div');
+    outputSection.style.cssText = 'margin: 1.5rem 0;';
+
+    const outputHeader = document.createElement('h4');
+    outputHeader.textContent = 'Program Output';
+    outputHeader.style.cssText = 'color: var(--text-primary); margin-bottom: 1rem; font-size: 1.125rem;';
+    outputSection.appendChild(outputHeader);
+
+    // Output console
+    const outputConsole = document.createElement('div');
+    outputConsole.style.cssText = `
+        background: #1a1a2e;
+        border: 1px solid var(--bg-hover);
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        font-family: 'Fira Code', 'Consolas', monospace;
+        color: #0f9;
+        font-size: 0.95rem;
+        line-height: 1.8;
+        min-height: 100px;
+    `;
+
+    // Add each output line
+    data.output.forEach(line => {
+        const outputLine = document.createElement('div');
+        outputLine.textContent = `> ${line}`;
+        outputLine.style.cssText = 'margin: 0.25rem 0;';
+        outputConsole.appendChild(outputLine);
+    });
+
+    outputSection.appendChild(outputConsole);
+    stageContent.appendChild(outputSection);
+
+    // Execution statistics
+    const statsBox = document.createElement('div');
+    statsBox.style.cssText = `
+        background: var(--bg-secondary);
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        margin-top: 1.5rem;
+    `;
+
+    const statsHeader = document.createElement('h4');
+    statsHeader.textContent = 'Execution Statistics';
+    statsHeader.style.cssText = 'color: var(--text-primary); margin-bottom: 1rem;';
+    statsBox.appendChild(statsHeader);
+
+    const instructionsExecuted = data.bytecode?.length || 0;
+    const outputLines = data.output.length;
+
+    statsBox.appendChild(createKeyValue('Instructions Executed', instructionsExecuted.toString()));
+    statsBox.appendChild(createKeyValue('Output Lines', outputLines.toString()));
+    statsBox.appendChild(createKeyValue('Exit Status', '✓ Success (0)'));
+
+    stageContent.appendChild(statsBox);
 }
 
+// ============================================
+// ERROR RENDERING
+// ============================================
 function renderErrors(data) {
     const stageContent = document.getElementById('stage-content');
-    stageContent.innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--error);">Error renderer coming in Part 3...</div>';
+
+    // Clear content
+    stageContent.innerHTML = '';
+
+    // Add error header
+    const header = createSectionHeader(
+        '❌ Compilation Failed',
+        'Errors were found during compilation'
+    );
+    stageContent.appendChild(header);
+
+    // Determine which stage failed
+    const failedStage = data.stage || 'unknown';
+    const stageNames = {
+        'lexical': 'Lexical Analysis',
+        'syntax': 'Syntax Analysis',
+        'semantic': 'Semantic Analysis',
+        'optimization': 'Optimization',
+        'codegen': 'Code Generation'
+    };
+
+    const stageName = stageNames[failedStage] || 'Unknown Stage';
+
+    // Stage failure info
+    const stageInfo = document.createElement('div');
+    stageInfo.style.cssText = `
+        background: rgba(239, 68, 68, 0.1);
+        border-left: 4px solid var(--error);
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin: 1rem 0;
+    `;
+
+    const stageText = document.createElement('div');
+    stageText.innerHTML = `<strong>Failed at:</strong> ${stageName}`;
+    stageText.style.cssText = 'color: var(--error); font-size: 1rem;';
+    stageInfo.appendChild(stageText);
+
+    stageContent.appendChild(stageInfo);
+
+    // Error details
+    if (data.errors && data.errors.length > 0) {
+        data.errors.forEach((error, index) => {
+            const errorBox = document.createElement('div');
+            errorBox.style.cssText = `
+                background: var(--bg-secondary);
+                border: 2px solid var(--error);
+                border-radius: 0.5rem;
+                padding: 1.5rem;
+                margin: 1rem 0;
+            `;
+
+            const errorTitle = document.createElement('h4');
+            errorTitle.textContent = `Error ${index + 1}`;
+            errorTitle.style.cssText = 'color: var(--error); margin-bottom: 1rem; font-size: 1.125rem;';
+            errorBox.appendChild(errorTitle);
+
+            // Error message
+            const message = document.createElement('div');
+            message.textContent = error.message || error.error || 'Unknown error';
+            message.style.cssText = 'color: var(--text-primary); font-size: 1rem; margin-bottom: 1rem; font-weight: 500;';
+            errorBox.appendChild(message);
+
+            // Location info
+            if (error.line !== undefined) {
+                const location = createKeyValue('Location', `Line ${error.line}${error.column ? `, Column ${error.column}` : ''}`);
+                errorBox.appendChild(location);
+            }
+
+            // Error type
+            if (error.type) {
+                const errorType = createKeyValue('Type', error.type);
+                errorBox.appendChild(errorType);
+            }
+
+            stageContent.appendChild(errorBox);
+        });
+    } else {
+        // Generic error message if no specific errors provided
+        const genericError = createInfoBox(
+            data.error || 'An unknown compilation error occurred',
+            'error'
+        );
+        stageContent.appendChild(genericError);
+    }
+
+    // Help message
+    const helpBox = document.createElement('div');
+    helpBox.style.cssText = `
+        background: var(--bg-secondary);
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-top: 1.5rem;
+        border-left: 4px solid var(--info);
+    `;
+
+    const helpTitle = document.createElement('h4');
+    helpTitle.textContent = '💡 How to Fix';
+    helpTitle.style.cssText = 'color: var(--info); margin-bottom: 0.5rem;';
+    helpBox.appendChild(helpTitle);
+
+    const helpText = document.createElement('p');
+    helpText.textContent = 'Review the error message above, check the indicated line and column in your code, and correct the syntax or semantic issue.';
+    helpText.style.cssText = 'color: var(--text-secondary); font-size: 0.875rem;';
+    helpBox.appendChild(helpText);
+
+    stageContent.appendChild(helpBox);
 }
 
-console.log('Stage Renderers loaded (Parts 1-2: Stages 1-4) ✓');
+console.log('Stage Renderers loaded (Complete: All 6 Stages + Errors) ✓');
