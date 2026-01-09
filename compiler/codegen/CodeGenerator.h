@@ -20,10 +20,15 @@ private:
     void generateStatement(Statement* stmt);
     void generateLetStatement(LetStatement* stmt);
     void generatePrintStatement(PrintStatement* stmt);
+    void generateIfStatement(IfStatement* stmt);          // NEW
+    void generateForStatement(ForStatement* stmt);        // NEW
     
     // Expression code generation (emits code to push result onto stack)
     void generateExpression(Expression* expr);
     void generateBinaryOperation(BinaryOperation* expr);
+    void generateComparisonExpression(ComparisonExpression* expr);  // NEW
+    void generateLogicalExpression(LogicalExpression* expr);        // NEW
+    void generateUnaryExpression(UnaryExpression* expr);            // NEW
     void generateIntegerLiteral(IntegerLiteral* expr);
     void generateVariable(Variable* expr);
 };

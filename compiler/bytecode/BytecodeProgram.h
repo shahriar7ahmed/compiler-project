@@ -24,6 +24,9 @@ public:
     // Pretty-print bytecode
     void print() const;
     
+    // Modify an instruction's operand (for backpatching jumps)
+    void patchInstruction(size_t index, int operand);
+    
     // Clear all instructions
     void clear();
     

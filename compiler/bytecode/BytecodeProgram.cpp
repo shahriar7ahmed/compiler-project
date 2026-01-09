@@ -41,6 +41,12 @@ void BytecodeProgram::print() const {
     std::cout << "----------------------------------------\n";
 }
 
+void BytecodeProgram::patchInstruction(size_t index, int operand) {
+    if (index < instructions.size()) {
+        instructions[index].intOperand = operand;
+    }
+}
+
 void BytecodeProgram::clear() {
     instructions.clear();
 }
