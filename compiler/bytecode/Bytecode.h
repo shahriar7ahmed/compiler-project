@@ -26,6 +26,20 @@ enum class OpCode {
     CMP_EQ,        // Pop two values, push (a == b)
     CMP_NEQ,       // Pop two values, push (a != b)
     
+    // Logical operations (NEW)
+    AND,           // Pop two values, push (a && b)
+    OR,            // Pop two values, push (a || b)
+    NOT,           // Pop one value, push (!a)
+    
+    // Jump/Branch operations (NEW)
+    JUMP,          // Unconditional jump to address
+    JUMP_IF_FALSE, // Jump to address if top of stack is false/0
+    JUMP_IF_TRUE,  // Jump to address if top of stack is true/non-zero
+    
+    // Stack manipulation (NEW)
+    POP,           // Pop and discard top of stack
+    DUP,           // Duplicate top of stack
+    
     // I/O operations
     PRINT,         // Pop and print value
     HALT           // Stop execution

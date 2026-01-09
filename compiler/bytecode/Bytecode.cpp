@@ -30,6 +30,14 @@ std::string opcodeToString(OpCode opcode) {
         case OpCode::CMP_GTE:    return "CMP_GTE";
         case OpCode::CMP_EQ:     return "CMP_EQ";
         case OpCode::CMP_NEQ:    return "CMP_NEQ";
+        case OpCode::AND:        return "AND";
+        case OpCode::OR:         return "OR";
+        case OpCode::NOT:        return "NOT";
+        case OpCode::JUMP:       return "JUMP";
+        case OpCode::JUMP_IF_FALSE: return "JUMP_IF_FALSE";
+        case OpCode::JUMP_IF_TRUE:  return "JUMP_IF_TRUE";
+        case OpCode::POP:        return "POP";
+        case OpCode::DUP:        return "DUP";
         case OpCode::PRINT:      return "PRINT";
         case OpCode::HALT:       return "HALT";
         default:                 return "UNKNOWN";
@@ -45,6 +53,10 @@ std::ostream& operator<<(std::ostream& os, const Instruction& instr) {
         os << " " << instr.intOperand;
     } else if (instr.opcode == OpCode::LOAD_VAR || instr.opcode == OpCode::STORE_VAR) {
         os << " \"" << instr.strOperand << "\"";
+    } else if (instr.opcode == OpCode::JUMP || 
+               instr.opcode == OpCode::JUMP_IF_FALSE || 
+               instr.opcode == OpCode::JUMP_IF_TRUE) {
+        os << " " << instr.intOperand;  // Jump address
     }
     
     return os;
