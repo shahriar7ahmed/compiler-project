@@ -24,35 +24,35 @@ app.use((req, res, next) => {
 // ============================================
 app.post('/api/compile', (req, res) => {
     const { sourceCode } = req.body;
-    
+
     if (!sourceCode) {
-        return res.status(400).json({ 
-            success: false, 
-            error: 'No source code provided' 
+        return res.status(400).json({
+            success: false,
+            error: 'No source code provided'
         });
     }
-    
+
     console.log('Compiling code:', sourceCode.substring(0, 50) + '...');
-    
+
     // Path to compiler executable (parent directory)
-    const compilerPath = path.join(__dirname, '..', 'compiler_api.exe');
-    
+    const compilerPath = path.join(__dirname, '..', 'compiler_web_api.exe');
+
     // Spawn the compiler process
     const compiler = spawn(compilerPath);
-    
+
     let output = '';
     let errorOutput = '';
-    
+
     // Capture stdout
     compiler.stdout.on('data', (data) => {
         output += data.toString();
     });
-    
+
     // Capture stderr
     compiler.stderr.on('data', (data) => {
         errorOutput += data.toString();
     });
-    
+
     // Handle process completion
     compiler.on('close', (code) => {
         if (code !== 0 && !output) {
@@ -63,7 +63,7 @@ app.post('/api/compile', (req, res) => {
                 details: errorOutput
             });
         }
-        
+
         try {
             // Parse JSON output from compiler
             const result = JSON.parse(output);
@@ -79,7 +79,7 @@ app.post('/api/compile', (req, res) => {
             });
         }
     });
-    
+
     // Handle process errors
     compiler.on('error', (err) => {
         console.error('Failed to start compiler:', err);
@@ -89,7 +89,7 @@ app.post('/api/compile', (req, res) => {
             details: err.message
         });
     });
-    
+
     // Send source code to compiler via stdin
     compiler.stdin.write(sourceCode);
     compiler.stdin.end();
@@ -101,7 +101,7 @@ app.post('/api/compile', (req, res) => {
 // ============================================
 app.get('/api/demos', (req, res) => {
     const demosPath = path.join(__dirname, '..', 'demos');
-    
+
     fs.readdir(demosPath, (err, files) => {
         if (err) {
             console.error('Error reading demos directory:', err);
@@ -110,14 +110,14 @@ app.get('/api/demos', (req, res) => {
                 error: 'Failed to read demos directory'
             });
         }
-        
+
         // Filter for .txt files and create demo objects
         const demos = files
             .filter(file => file.endsWith('.txt'))
             .map(file => {
                 // Create descriptive names from filenames
                 let description = file.replace('.txt', '').replace(/_/g, ' ');
-                
+
                 // Add specific descriptions for known demos
                 const descriptions = {
                     'demo1': 'Simple variable declaration',
@@ -128,16 +128,16 @@ app.get('/api/demos', (req, res) => {
                     'demo_error1': 'Undefined variable error',
                     'demo_error2': 'Duplicate declaration error'
                 };
-                
+
                 const basename = file.replace('.txt', '');
                 description = descriptions[basename] || description;
-                
+
                 return {
                     name: file,
                     description: description
                 };
             });
-        
+
         res.json({ demos });
     });
 });
@@ -149,18 +149,18 @@ app.get('/api/demos', (req, res) => {
 app.get('/api/demo/:name', (req, res) => {
     const demoName = req.params.name;
     const demoPath = path.join(__dirname, '..', 'demos', demoName);
-    
+
     // Security: Ensure the file is within demos directory
     const resolvedPath = path.resolve(demoPath);
     const demosDir = path.resolve(path.join(__dirname, '..', 'demos'));
-    
+
     if (!resolvedPath.startsWith(demosDir)) {
         return res.status(403).json({
             success: false,
             error: 'Access denied'
         });
     }
-    
+
     fs.readFile(demoPath, 'utf8', (err, content) => {
         if (err) {
             if (err.code === 'ENOENT') {
@@ -175,7 +175,7 @@ app.get('/api/demo/:name', (req, res) => {
                 error: 'Failed to read demo file'
             });
         }
-        
+
         res.json({
             name: demoName,
             content: content
