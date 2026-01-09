@@ -70,8 +70,14 @@ std::unique_ptr<Statement> Parser::parseStatement() {
     if (match(TokenType::PRINT)) {
         return parsePrintStatement();
     }
+    if (match(TokenType::IF)) {
+        return parseIfStatement();
+    }
+    if (match(TokenType::FOR)) {
+        return parseForStatement();
+    }
     
-    error("Expected statement (let or print)");
+    error("Expected statement (let, print, if, or for)");
     return nullptr; // Never reached
 }
 
@@ -97,7 +103,20 @@ std::unique_ptr<Statement> Parser::parsePrintStatement() {
 // ===== Expression Parsing (Precedence Climbing) =====
 
 std::unique_ptr<Expression> Parser::parseExpression() {
-    return parseComparison();
+    return parseLogical();
+}
+
+// NEW: Logical operators (&&, ||)
+std::unique_ptr<Expression> Parser::parseLogical() {
+    auto expr = parseComparison();
+    
+    while (match(TokenType::AND) || match(TokenType::OR)) {
+        std::string op = previous().lexeme;
+        auto right = parseComparison();
+        expr = std::make_unique<LogicalExpression>(std::move(expr), op, std::move(right));
+    }
+    
+    return expr;
 }
 
 std::unique_ptr<Expression> Parser::parseComparison() {
@@ -109,7 +128,7 @@ std::unique_ptr<Expression> Parser::parseComparison() {
         
         std::string op = previous().lexeme;
         auto right = parseTerm();
-        expr = std::make_unique<BinaryOperation>(std::move(expr), op, std::move(right));
+        expr = std::make_unique<ComparisonExpression>(std::move(expr), op, std::move(right));
     }
     
     return expr;
@@ -140,6 +159,13 @@ std::unique_ptr<Expression> Parser::parseFactor() {
 }
 
 std::unique_ptr<Expression> Parser::parseUnary() {
+    // Unary NOT operator
+    if (match(TokenType::NOT)) {
+        std::string op = previous().lexeme;
+        auto operand = parseUnary();
+        return std::make_unique<UnaryExpression>(op, std::move(operand));
+    }
+    
     // Integer literal
     if (match(TokenType::INTEGER)) {
         int value = std::stoi(previous().lexeme);
@@ -161,4 +187,62 @@ std::unique_ptr<Expression> Parser::parseUnary() {
     
     error("Expected expression");
     return nullptr; // Never reached
+}
+
+// NEW: Parse a block of statements { ... }
+std::vector<std::unique_ptr<Statement>> Parser::parseBlock() {
+    std::vector<std::unique_ptr<Statement>> statements;
+    
+    while (!check(TokenType::RBRACE) && !isAtEnd()) {
+        statements.push_back(parseStatement());
+    }
+    
+    return statements;
+}
+
+// NEW: Parse if statement
+std::unique_ptr<Statement> Parser::parseIfStatement() {
+    // Parse condition
+    auto condition = parseExpression();
+    
+    // Parse then block
+    expect(TokenType::LBRACE, "Expected '{' after if condition");
+    auto thenBlock = parseBlock();
+    expect(TokenType::RBRACE, "Expected '}' after if block");
+    
+    // Parse optional else block
+    std::vector<std::unique_ptr<Statement>> elseBlock;
+    if (match(TokenType::ELSE)) {
+        expect(TokenType::LBRACE, "Expected '{' after else");
+        elseBlock = parseBlock();
+        expect(TokenType::RBRACE, "Expected '}' after else block");
+    }
+    
+    return std::make_unique<IfStatement>(std::move(condition), 
+                                        std::move(thenBlock), 
+                                        std::move(elseBlock));
+}
+
+// NEW: Parse for loop
+std::unique_ptr<Statement> Parser::parseForStatement() {
+    // for variable = start to end { body }
+    Token varToken = expect(TokenType::IDENTIFIER, "Expected variable name after 'for'");
+    std::string variable = varToken.lexeme;
+    
+    expect(TokenType::ASSIGN, "Expected '=' after for variable");
+    
+    auto start = parseExpression();
+    
+    expect(TokenType::TO, "Expected 'to' in for loop");
+    
+    auto end = parseExpression();
+    
+    expect(TokenType::LBRACE, "Expected '{' after for range");
+    auto body = parseBlock();
+    expect(TokenType::RBRACE, "Expected '}' after for body");
+    
+    return std::make_unique<ForStatement>(variable, 
+                                         std::move(start), 
+                                         std::move(end), 
+                                         std::move(body));
 }

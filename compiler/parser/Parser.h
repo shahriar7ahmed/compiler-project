@@ -43,12 +43,16 @@ private:
     std::unique_ptr<Statement> parseStatement();
     std::unique_ptr<Statement> parseLetStatement();
     std::unique_ptr<Statement> parsePrintStatement();
+    std::unique_ptr<Statement> parseIfStatement();        // NEW: if-else statements
+    std::unique_ptr<Statement> parseForStatement();       // NEW: for loops
+    std::vector<std::unique_ptr<Statement>> parseBlock(); // NEW: parse { statements }
     
     std::unique_ptr<Expression> parseExpression();      // Entry point for expressions
+    std::unique_ptr<Expression> parseLogical();         // NEW: Logical: &&, ||
     std::unique_ptr<Expression> parseComparison();      // Comparison: <, >, ==, !=, <=, >=
     std::unique_ptr<Expression> parseTerm();            // Addition/Subtraction: +, -
     std::unique_ptr<Expression> parseFactor();          // Multiplication/Division/Modulo: *, /, %
-    std::unique_ptr<Expression> parseUnary();           // Literals, variables, parentheses
+    std::unique_ptr<Expression> parseUnary();           // NEW: Unary: !, and primary (literals, variables, parens)
 };
 
 #endif
