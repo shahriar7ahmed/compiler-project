@@ -9,14 +9,14 @@ void VirtualMachine::execute(const BytecodeProgram& program) {
     instructionCount = 0;
     
     const auto& instructions = program.getInstructions();
-    size_t pc = 0; // Program counter
+    int pc = 0; // Program counter (changed to int to allow modification by jumps)
     
     if (traceMode) {
         std::cout << "\n=== VM Execution Trace ===\n";
     }
     
     // Execute until HALT or end of program
-    while (pc < instructions.size()) {
+    while (pc >= 0 && pc < static_cast<int>(instructions.size())) {
         const Instruction& instr = instructions[pc];
         
         if (traceMode) {
@@ -26,6 +26,31 @@ void VirtualMachine::execute(const BytecodeProgram& program) {
         // Check for HALT
         if (instr.opcode == OpCode::HALT) {
             break;
+        }
+        
+        // Handle jump instructions specially (they modify pc)
+        if (instr.opcode == OpCode::JUMP) {
+            pc = instr.intOperand;
+            instructionCount++;
+            continue;
+        } else if (instr.opcode == OpCode::JUMP_IF_FALSE) {
+            int condition = pop();
+            if (condition == 0) {
+                pc = instr.intOperand;
+            } else {
+                pc++;
+            }
+            instructionCount++;
+            continue;
+        } else if (instr.opcode == OpCode::JUMP_IF_TRUE) {
+            int condition = pop();
+            if (condition != 0) {
+                pc = instr.intOperand;
+            } else {
+                pc++;
+            }
+            instructionCount++;
+            continue;
         }
         
         executeInstruction(instr);
@@ -144,6 +169,47 @@ void VirtualMachine::executeInstruction(const Instruction& instr) {
             push((a != b) ? 1 : 0);
             break;
         }
+        
+        // Logical operations (NEW)
+        case OpCode::AND: {
+            int b = pop();
+            int a = pop();
+            push((a && b) ? 1 : 0);
+            break;
+        }
+        
+        case OpCode::OR: {
+            int b = pop();
+            int a = pop();
+            push((a || b) ? 1 : 0);
+            break;
+        }
+        
+        case OpCode::NOT: {
+            int a = pop();
+            push(!a ? 1 : 0);
+            break;
+        }
+        
+        // Stack manipulation (NEW)
+        case OpCode::POP: {
+            pop();  // Just discard top of stack
+            break;
+        }
+        
+        case OpCode::DUP: {
+            int value = peek();
+            push(value);
+            break;
+        }
+        
+        // Jump instructions handled in main loop
+        case OpCode::JUMP:
+        case OpCode::JUMP_IF_FALSE:
+        case OpCode::JUMP_IF_TRUE:
+            // These are handled in execute() loop
+            throw std::runtime_error("Jump instructions should be handled in main loop");
+            break;
         
         // I/O operations
         case OpCode::PRINT: {
