@@ -12,6 +12,10 @@ enum class TokenType {
     // Keywords
     LET,
     PRINT,
+    IF,
+    ELSE,
+    FOR,
+    TO,
     
     // Arithmetic Operators
     PLUS,
@@ -29,9 +33,16 @@ enum class TokenType {
     EQUAL_EQUAL,
     NOT_EQUAL,
     
+    // Logical Operators
+    AND,
+    OR,
+    NOT,
+    
     // Punctuation
     LPAREN,
     RPAREN,
+    LBRACE,
+    RBRACE,
     SEMICOLON,
     
     // Special
@@ -57,6 +68,10 @@ inline std::string tokenTypeToString(TokenType type) {
         case TokenType::IDENTIFIER:  return "IDENTIFIER";
         case TokenType::LET:         return "LET";
         case TokenType::PRINT:       return "PRINT";
+        case TokenType::IF:          return "IF";
+        case TokenType::ELSE:        return "ELSE";
+        case TokenType::FOR:         return "FOR";
+        case TokenType::TO:          return "TO";
         case TokenType::PLUS:        return "PLUS";
         case TokenType::MINUS:       return "MINUS";
         case TokenType::MULTIPLY:    return "MULTIPLY";
@@ -69,8 +84,13 @@ inline std::string tokenTypeToString(TokenType type) {
         case TokenType::GREATER_EQUAL: return "GREATER_EQUAL";
         case TokenType::EQUAL_EQUAL: return "EQUAL_EQUAL";
         case TokenType::NOT_EQUAL:   return "NOT_EQUAL";
+        case TokenType::AND:         return "AND";
+        case TokenType::OR:          return "OR";
+        case TokenType::NOT:         return "NOT";
         case TokenType::LPAREN:      return "LPAREN";
         case TokenType::RPAREN:      return "RPAREN";
+        case TokenType::LBRACE:      return "LBRACE";
+        case TokenType::RBRACE:      return "RBRACE";
         case TokenType::SEMICOLON:   return "SEMICOLON";
         case TokenType::END_OF_FILE: return "EOF";
         case TokenType::INVALID:     return "INVALID";

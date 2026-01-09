@@ -1,0 +1,9 @@
+if x > 10 {
+    print x;
+} else {
+    print 0;
+}
+
+for i = 1 to 5 {
+    print i;
+}

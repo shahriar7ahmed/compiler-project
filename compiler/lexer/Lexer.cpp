@@ -86,6 +86,14 @@ Token Lexer::readIdentifierOrKeyword() {
         type = TokenType::LET;
     } else if (identifier == "print") {
         type = TokenType::PRINT;
+    } else if (identifier == "if") {
+        type = TokenType::IF;
+    } else if (identifier == "else") {
+        type = TokenType::ELSE;
+    } else if (identifier == "for") {
+        type = TokenType::FOR;
+    } else if (identifier == "to") {
+        type = TokenType::TO;
     }
     
     return Token(type, identifier, line, startColumn);
@@ -121,6 +129,8 @@ Token Lexer::nextToken() {
         case '%': return Token(TokenType::MODULO, "%", line, startColumn);
         case '(': return Token(TokenType::LPAREN, "(", line, startColumn);
         case ')': return Token(TokenType::RPAREN, ")", line, startColumn);
+        case '{': return Token(TokenType::LBRACE, "{", line, startColumn);
+        case '}': return Token(TokenType::RBRACE, "}", line, startColumn);
         case ';': return Token(TokenType::SEMICOLON, ";", line, startColumn);
         
         // Two-character operators
@@ -150,7 +160,21 @@ Token Lexer::nextToken() {
                 advance();
                 return Token(TokenType::NOT_EQUAL, "!=", line, startColumn);
             }
-            return Token(TokenType::INVALID, "!", line, startColumn);
+            return Token(TokenType::NOT, "!", line, startColumn);
+        
+        case '&':
+            if (peek() == '&') {
+                advance();
+                return Token(TokenType::AND, "&&", line, startColumn);
+            }
+            return Token(TokenType::INVALID, "&", line, startColumn);
+        
+        case '|':
+            if (peek() == '|') {
+                advance();
+                return Token(TokenType::OR, "||", line, startColumn);
+            }
+            return Token(TokenType::INVALID, "|", line, startColumn);
         
         default:
             return Token(TokenType::INVALID, std::string(1, c), line, startColumn);
