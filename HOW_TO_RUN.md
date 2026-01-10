@@ -1,4 +1,30 @@
-# 🚀 How to Run the Compiler Demo
+# 🚀 How to Run the Compiler
+
+## Option 1: Web Interface (Recommended)
+
+The easiest way to explore the compiler is through the modern web interface.
+
+1.  **Build the Backend** (if not already built):
+    ```bash
+    g++ -std=c++17 -I. main_web_api.cpp compiler/lexer/Lexer.cpp compiler/parser/AST.cpp compiler/parser/Parser.cpp compiler/semantic/SemanticAnalyzer.cpp compiler/semantic/SymbolTable.cpp compiler/codegen/CodeGenerator.cpp compiler/bytecode/Bytecode.cpp compiler/bytecode/BytecodeProgram.cpp compiler/vm/VirtualMachine.cpp compiler/optimizer/Optimizer.cpp -o compiler_web_api.exe
+    ```
+
+2.  **Start the Server**:
+    ```bash
+    cd web-app
+    npm start
+    ```
+
+3.  **Open Browser**:
+    Go to [http://localhost:3000](http://localhost:3000)
+
+## Option 2: Desktop CLI (Classic)
+
+You can also run the standard desktop console version:
+
+```bash
+.\compiler_demo.exe
+```
 
 ## Quick Start (Already Compiled!)
 

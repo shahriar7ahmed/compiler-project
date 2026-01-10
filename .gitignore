@@ -1,0 +1,25 @@
+# Build Artifacts
+*.exe
+*.o
+*.obj
+*.dll
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-debug.log
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Project Local
+.gemini/
+unused/
+tmp/
+
+# OS
+.DS_Store
+Thumbs.db
