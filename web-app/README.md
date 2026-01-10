@@ -39,11 +39,11 @@ This is the web-based frontend for the Educational Compiler project. It provides
 
 ## Screenshots
 
-### AST Visualization
-![AST Example](screenshots/ast_example.png)
+### Interface & Stages
+![Compiler Interface](../images/Screenshot%202026-01-10%20190644.png)
 
 ### Execution Output
-![Execution Example](screenshots/execution_example.png)
+![Execution Result](../images/Screenshot%202026-01-10%20190843.png)
 
 ## Troubleshooting
 

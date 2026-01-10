@@ -4,7 +4,7 @@ A complete **6-stage educational compiler** built from scratch in C++ to demonst
 
 **New!** Now features a modern **Web Interface** for an interactive experience!
 
-![Compiler Web Interface](web-app/screenshots/ast_example.png)
+![Compiler Web Interface](images/Screenshot%202026-01-10%20190644.png)
 
 ## 🌟 Features
 
@@ -32,9 +32,29 @@ A complete **6-stage educational compiler** built from scratch in C++ to demonst
 
 3.  **Explore**: Open [http://localhost:3000](http://localhost:3000)
 
-## 🔧 Compilation Stages
+## � Project Gallery
 
-The web interface visualizes all 6 stages:
+### 1. The Interface
+The main interface allows you to select demos, write code, and compile instantly.
+![Main Interface](images/Screenshot%202026-01-10%20190644.png)
+
+### 2. Compilation Stages
+Visualize the transformation of code through different compiler stages.
+![Lexical Analysis](images/Screenshot%202026-01-10%20190702.png)
+![Syntax Analysis](images/Screenshot%202026-01-10%20190711.png)
+
+### 3. Visualizations
+See the Abstract Syntax Tree (AST) and optimization results.
+![AST View](images/Screenshot%202026-01-10%20190724.png)
+![Optimization View](images/Screenshot%202026-01-10%20190738.png)
+![Code Generation](images/Screenshot%202026-01-10%20190747.png)
+
+### 4. Execution & Results
+Watch the virtual machine execute your compiled bytecode.
+![Execution Output](images/Screenshot%202026-01-10%20190843.png)
+![Final Result](images/Screenshot%202026-01-10%20190914.png)
+
+## 🔧 Compilation Stages
 
 1. **Lexical Analysis (Tokens)**: Breaks code into keywords, identifiers, and symbols.
 2. **Syntax Analysis (AST)**: Builds the tree structure of the program.
@@ -42,14 +62,6 @@ The web interface visualizes all 6 stages:
 4. **Code Optimization**: Improves code efficiency (e.g., `2 + 3` becomes `5`).
 5. **Code Generation (Bytecode)**: Generates low-level instructions.
 6. **Execution**: Runs the code on a stack-based virtual machine.
-
-## 📸 Screenshots
-
-### Abstract Syntax Tree (AST)
-![AST Visualization](web-app/screenshots/ast_example.png)
-
-### Program Execution
-![Execution Output](web-app/screenshots/execution_example.png)
 
 ## 📁 Project Structure
 
@@ -63,10 +75,9 @@ compiler-project/
 │   ├── codegen/        # Bytecode Generation
 │   └── vm/             # Virtual Machine
 ├── web-app/            # Node.js Frontend
-│   ├── public/         # UI Assets (HTML/CSS/JS)
-│   └── server.js       # Express Server
 ├── demos/              # Demo Files
-└── main_web_api.cpp    # JSON API Interface
+├── images/             # Screenshot Gallery
+└── compiler_web_api.exe # Backend Executable
 ```
 
 ## 💻 Language Syntax
