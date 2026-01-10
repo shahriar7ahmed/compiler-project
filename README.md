@@ -36,7 +36,7 @@ A complete **6-stage educational compiler** built from scratch in C++ to demonst
 
 ### 1. The Interface
 The main interface allows you to select demos, write code, and compile instantly.
-![Main Interface](images/Screenshot%202026-01-10%20190644.png)
+![Main Interface](images/Screenshot%202026-01-10%20190914.png)
 
 ### 2. Compilation Stages
 Visualize the transformation of code through different compiler stages.
@@ -47,12 +47,11 @@ Visualize the transformation of code through different compiler stages.
 See the Abstract Syntax Tree (AST) and optimization results.
 ![AST View](images/Screenshot%202026-01-10%20190724.png)
 ![Optimization View](images/Screenshot%202026-01-10%20190738.png)
-![Code Generation](images/Screenshot%202026-01-10%20190747.png)
 
 ### 4. Execution & Results
 Watch the virtual machine execute your compiled bytecode.
-![Execution Output](images/Screenshot%202026-01-10%20190843.png)
-![Final Result](images/Screenshot%202026-01-10%20190914.png)
+![Execution Output](images/Screenshot%202026-01-10%20190747.png)
+![Final Result](images/Screenshot%202026-01-10%20190644.png)
 
 ## 🔧 Compilation Stages
 
