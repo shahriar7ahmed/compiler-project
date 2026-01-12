@@ -68,7 +68,135 @@ class ASTVisualizer {
         this.g = this.svg.append('g')
             .attr('class', 'tree-group');
 
+        // Setup zoom behavior - Phase 5.3.3
+        this.setupZoom();
+
+        // Add zoom controls - Phase 5.3.3
+        this.addZoomControls();
+
         return true;
+    }
+
+    /**
+     * Setup zoom and pan behavior - Phase 5.3.3
+     */
+    setupZoom() {
+        const minZoom = 0.1;
+        const maxZoom = 3;
+
+        this.zoom = d3.zoom()
+            .scaleExtent([minZoom, maxZoom])
+            .on('zoom', (event) => {
+                this.g.attr('transform', event.transform);
+                this.currentZoom = event.transform.k;
+            });
+
+        this.svg.call(this.zoom);
+    }
+
+    /**
+     * Add zoom control buttons - Phase 5.3.3
+     */
+    addZoomControls() {
+        // Create controls container
+        const controls = d3.select(`#${this.containerId}`)
+            .append('div')
+            .attr('class', 'ast-zoom-controls')
+            .style('position', 'absolute')
+            .style('top', '10px')
+            .style('right', '10px')
+            .style('display', 'flex')
+            .style('flex-direction', 'column')
+            .style('gap', '8px')
+            .style('z-index', '10');
+
+        // Zoom in button
+        controls.append('button')
+            .attr('class', 'zoom-btn zoom-in')
+            .html('➕')
+            .style('width', '40px')
+            .style('height', '40px')
+            .style('background', '#4a5568')
+            .style('color', 'white')
+            .style('border', 'none')
+            .style('border-radius', '8px')
+            .style('cursor', 'pointer')
+            .style('font-size', '18px')
+            .style('transition', 'all 0.2s')
+            .on('mouseover', function () {
+                d3.select(this).style('background', '#6366f1');
+            })
+            .on('mouseout', function () {
+                d3.select(this).style('background', '#4a5568');
+            })
+            .on('click', () => this.zoomIn());
+
+        // Zoom out button
+        controls.append('button')
+            .attr('class', 'zoom-btn zoom-out')
+            .html('➖')
+            .style('width', '40px')
+            .style('height', '40px')
+            .style('background', '#4a5568')
+            .style('color', 'white')
+            .style('border', 'none')
+            .style('border-radius', '8px')
+            .style('cursor', 'pointer')
+            .style('font-size', '18px')
+            .style('transition', 'all 0.2s')
+            .on('mouseover', function () {
+                d3.select(this).style('background', '#6366f1');
+            })
+            .on('mouseout', function () {
+                d3.select(this).style('background', '#4a5568');
+            })
+            .on('click', () => this.zoomOut());
+
+        // Reset/Fit button
+        controls.append('button')
+            .attr('class', 'zoom-btn zoom-reset')
+            .html('⟲')
+            .style('width', '40px')
+            .style('height', '40px')
+            .style('background', '#4a5568')
+            .style('color', 'white')
+            .style('border', 'none')
+            .style('border-radius', '8px')
+            .style('cursor', 'pointer')
+            .style('font-size', '20px')
+            .style('transition', 'all 0.2s')
+            .on('mouseover', function () {
+                d3.select(this).style('background', '#10b981');
+            })
+            .on('mouseout', function () {
+                d3.select(this).style('background', '#4a5568');
+            })
+            .on('click', () => this.resetZoom());
+    }
+
+    /**
+     * Zoom in - Phase 5.3.3
+     */
+    zoomIn() {
+        this.svg.transition()
+            .duration(350)
+            .call(this.zoom.scaleBy, 1.3);
+    }
+
+    /**
+     * Zoom out - Phase 5.3.3
+     */
+    zoomOut() {
+        this.svg.transition()
+            .duration(350)
+            .call(this.zoom.scaleBy, 0.7);
+    }
+
+    /**
+     * Reset zoom to fit entire tree - Phase 5.3.3
+     */
+    resetZoom() {
+        this.centerTree();
     }
 
     /**
@@ -393,7 +521,7 @@ class ASTVisualizer {
     }
 
     /**
-     * Center the tree in the viewport
+     * Center the tree in the viewport - Phase 5.3.3 updated
      */
     centerTree() {
         if (!this.root) return;
@@ -409,9 +537,14 @@ class ASTVisualizer {
         const scale = 0.9 / Math.max(width / fullWidth, height / fullHeight);
         const translate = [fullWidth / 2 - scale * midX, fullHeight / 2 - scale * midY];
 
-        this.g.transition()
+        // Use zoom transform for smooth animation
+        const transform = d3.zoomIdentity
+            .translate(translate[0], translate[1])
+            .scale(scale);
+
+        this.svg.transition()
             .duration(750)
-            .attr('transform', `translate(${translate[0]},${translate[1]}) scale(${scale})`);
+            .call(this.zoom.transform, transform);
 
         this.currentZoom = scale;
     }
