@@ -658,6 +658,47 @@ function renderBytecode(bytecode) {
     stats.appendChild(createKeyValue('Total Instructions', bytecode.length.toString()));
     stageContent.appendChild(stats);
 
+    // Add debugger toggle - Phase 5.5.6
+    const viewToggle = document.createElement('div');
+    viewToggle.style.cssText = 'margin: 1rem 0; display: flex; gap: 0.5rem;';
+
+    const tableViewBtn = document.createElement('button');
+    tableViewBtn.textContent = '📋 Table View';
+    tableViewBtn.className = 'view-toggle-btn active';
+    tableViewBtn.style.cssText = `
+        padding: 0.5rem 1rem;
+        background: var(--accent-primary);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s;
+    `;
+
+    const debuggerViewBtn = document.createElement('button');
+    debuggerViewBtn.textContent = '🐛 Debugger View';
+    debuggerViewBtn.className = 'view-toggle-btn';
+    debuggerViewBtn.style.cssText = `
+        padding: 0.5rem 1rem;
+        background: var(--bg-tertiary);
+        color: var(--text-secondary);
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s;
+    `;
+
+    viewToggle.appendChild(tableViewBtn);
+    viewToggle.appendChild(debuggerViewBtn);
+    stageContent.appendChild(viewToggle);
+
+    // Table view container
+    const tableViewContainer = document.createElement('div');
+    tableViewContainer.id = 'bytecode-table-view';
+    tableViewContainer.style.display = 'block';
+
     // Bytecode table
     const headers = ['Address', 'Opcode', 'Operand', 'Description'];
     const rows = bytecode.map((instr, index) => {
@@ -731,9 +772,48 @@ function renderBytecode(bytecode) {
 
     stageContent.appendChild(table);
 
+    tableViewContainer.appendChild(table);
+
+    // Debugger view container - Phase 5.5.6
+    const debuggerViewContainer = document.createElement('div');
+    debuggerViewContainer.id = 'bytecode-debugger-view';
+    debuggerViewContainer.style.display = 'none';
+
+    stageContent.appendChild(tableViewContainer);
+    stageContent.appendChild(debuggerViewContainer);
+
+    // Toggle functionality - Phase 5.5.6
+    let bytecodeDebugger = null;
+
+    tableViewBtn.addEventListener('click', () => {
+        tableViewBtn.style.background = 'var(--accent-primary)';
+        tableViewBtn.style.color = 'white';
+        debuggerViewBtn.style.background = 'var(--bg-tertiary)';
+        debuggerViewBtn.style.color = 'var(--text-secondary)';
+
+        tableViewContainer.style.display = 'block';
+        debuggerViewContainer.style.display = 'none';
+    });
+
+    debuggerViewBtn.addEventListener('click', () => {
+        debuggerViewBtn.style.background = 'var(--accent-primary)';
+        debuggerViewBtn.style.color = 'white';
+        tableViewBtn.style.background = 'var(--bg-tertiary)';
+        tableViewBtn.style.color = 'var(--text-secondary)';
+
+        tableViewContainer.style.display = 'none';
+        debuggerViewContainer.style.display = 'block';
+
+        // Initialize debugger if not already done - Phase 5.5.6
+        if (!bytecodeDebugger && typeof BytecodeDebugger !== 'undefined') {
+            bytecodeDebugger = new BytecodeDebugger('bytecode-debugger-view');
+            bytecodeDebugger.load(bytecode);
+        }
+    });
+
     // Execution info
     const infoBox = createInfoBox(
-        'Bytecode is ready for execution by the virtual machine!',
+        'Bytecode is ready for execution by the virtual machine! Switch to Debugger View for step-by-step execution.',
         'success'
     );
     stageContent.appendChild(infoBox);

@@ -45,6 +45,20 @@ class BytecodeDebugger {
             gap: 1rem;
         `;
 
+        // Mobile responsive - Phase 5.5.6
+        const mediaQuery = window.matchMedia('(max-width: 768px)');
+        if (mediaQuery.matches) {
+            this.container.style.gridTemplateColumns = '1fr';
+        }
+
+        mediaQuery.addEventListener('change', (e) => {
+            if (e.matches) {
+                this.container.style.gridTemplateColumns = '1fr';
+            } else {
+                this.container.style.gridTemplateColumns = '1fr 300px';
+            }
+        });
+
         // Create left panel (bytecode + controls)
         this.leftPanel = document.createElement('div');
         this.leftPanel.style.cssText = `
@@ -124,7 +138,62 @@ class BytecodeDebugger {
         this.createVariableTable();
         this.createStatsPanel(); // Phase 5.5.5
 
+        // Setup keyboard shortcuts - Phase 5.5.6
+        this.setupKeyboardShortcuts();
+
         console.log('✓ Bytecode debugger loaded with', this.bytecode.length, 'instructions');
+    }
+
+    /**
+     * Setup keyboard shortcuts - Phase 5.5.6
+     */
+    setupKeyboardShortcuts() {
+        // Remove existing listener if any
+        if (this.keyboardHandler) {
+            document.removeEventListener('keydown', this.keyboardHandler);
+        }
+
+        this.keyboardHandler = (e) => {
+            // Only handle if debugger container is visible
+            if (!this.container || this.container.style.display === 'none') {
+                return;
+            }
+
+            switch (e.key) {
+                case ' ': // Space - Step forward
+                    e.preventDefault();
+                    this.stepForward();
+                    break;
+                case 'r': // R - Reset
+                case 'R':
+                    e.preventDefault();
+                    this.reset();
+                    break;
+                case 'p': // P - Play/Pause toggle
+                case 'P':
+                    e.preventDefault();
+                    if (this.isRunning) {
+                        this.pause();
+                    } else {
+                        this.play();
+                    }
+                    break;
+                case 's': // S - Stop
+                case 'S':
+                    e.preventDefault();
+                    this.stop();
+                    break;
+                case 'b': // B - Toggle breakpoint on current line
+                case 'B':
+                    e.preventDefault();
+                    if (this.currentInstruction >= 0 && this.currentInstruction < this.bytecode.length) {
+                        this.toggleBreakpoint(this.currentInstruction + 1);
+                    }
+                    break;
+            }
+        };
+
+        document.addEventListener('keydown', this.keyboardHandler);
     }
 
     /**
@@ -1177,11 +1246,23 @@ class BytecodeDebugger {
     }
 
     /**
-     * Clear visualization
+     * Clear visualization - Phase 5.5.6 updated
      */
     clear() {
         if (this.container) {
             this.container.innerHTML = '';
+        }
+
+        // Clean up keyboard listener - Phase 5.5.6
+        if (this.keyboardHandler) {
+            document.removeEventListener('keydown', this.keyboardHandler);
+            this.keyboardHandler = null;
+        }
+
+        // Clear interval if running
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+            this.intervalId = null;
         }
     }
 }
