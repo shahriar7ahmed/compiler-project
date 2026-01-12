@@ -496,6 +496,8 @@ class BytecodeDebugger {
         this.variables = {};
         this.executionHistory = [];
         this.isRunning = false;
+        this.previousStack = []; // Phase 5.5.4
+        this.previousVariables = {}; // Phase 5.5.4
 
         if (this.intervalId) {
             clearInterval(this.intervalId);
@@ -503,6 +505,22 @@ class BytecodeDebugger {
         }
 
         this.updateUI();
+        this.updateButtonStates();
+    }
+
+    /**
+     * Get execution statistics - Phase 5.5.4
+     */
+    getExecutionStats() {
+        return {
+            totalInstructions: this.bytecode.length,
+            currentInstruction: this.currentInstruction + 1,
+            progress: this.bytecode.length > 0 ?
+                ((this.currentInstruction + 1) / this.bytecode.length * 100).toFixed(1) : 0,
+            stackSize: this.stack.length,
+            variableCount: Object.keys(this.variables).length,
+            historyDepth: this.executionHistory.length
+        };
     }
 
     /**
@@ -515,7 +533,7 @@ class BytecodeDebugger {
     }
 
     /**
-     * Update stack visualization - Phase 5.5.1
+     * Update stack visualization - Phase 5.5.4 enhanced with animations
      */
     updateStackView() {
         const container = document.getElementById('stack-container');
@@ -523,10 +541,18 @@ class BytecodeDebugger {
 
         if (!container || !sizeLabel) return;
 
-        container.innerHTML = '';
+        // Store previous stack for comparison
+        if (!this.previousStack) {
+            this.previousStack = [];
+        }
+
+        const prevLength = this.previousStack.length;
+        const currLength = this.stack.length;
+
         sizeLabel.textContent = `${this.stack.length} item${this.stack.length !== 1 ? 's' : ''}`;
 
         if (this.stack.length === 0) {
+            container.innerHTML = '';
             const emptyMsg = document.createElement('div');
             emptyMsg.textContent = 'Stack is empty';
             emptyMsg.style.cssText = `
@@ -536,8 +562,15 @@ class BytecodeDebugger {
                 padding: 2rem 0;
             `;
             container.appendChild(emptyMsg);
+            this.previousStack = [];
             return;
         }
+
+        // Detect push or pop - Phase 5.5.4
+        const isPush = currLength > prevLength;
+        const isPop = currLength < prevLength;
+
+        container.innerHTML = '';
 
         this.stack.forEach((value, index) => {
             const item = document.createElement('div');
@@ -550,6 +583,11 @@ class BytecodeDebugger {
                 justify-content: space-between;
                 align-items: center;
             `;
+
+            // Animate new items (push) - Phase 5.5.4
+            if (isPush && index === this.stack.length - 1) {
+                item.style.animation = 'stackPush 0.3s ease-out';
+            }
 
             const valueSpan = document.createElement('span');
             valueSpan.textContent = value;
@@ -570,16 +608,24 @@ class BytecodeDebugger {
             item.appendChild(indexSpan);
             container.appendChild(item);
         });
+
+        // Update previous stack
+        this.previousStack = [...this.stack];
     }
 
     /**
-     * Update variable table - Phase 5.5.1
+     * Update variable table - Phase 5.5.4 enhanced with animations
      */
     updateVariableTable() {
         const container = document.getElementById('variable-container');
         const countLabel = document.getElementById('var-count');
 
         if (!container || !countLabel) return;
+
+        // Store previous variables for comparison
+        if (!this.previousVariables) {
+            this.previousVariables = {};
+        }
 
         const varNames = Object.keys(this.variables);
         container.innerHTML = '';
@@ -595,6 +641,7 @@ class BytecodeDebugger {
                 padding: 2rem 0;
             `;
             container.appendChild(emptyMsg);
+            this.previousVariables = {};
             return;
         }
 
@@ -609,6 +656,15 @@ class BytecodeDebugger {
                 align-items: center;
                 border-left: 3px solid #10b981;
             `;
+
+            // Detect value change - Phase 5.5.4
+            const isNew = this.previousVariables[name] === undefined;
+            const isChanged = this.previousVariables[name] !== undefined &&
+                this.previousVariables[name] !== this.variables[name];
+
+            if (isNew || isChanged) {
+                row.style.animation = 'varChange 1s ease-out';
+            }
 
             const nameSpan = document.createElement('span');
             nameSpan.textContent = name;
@@ -625,10 +681,25 @@ class BytecodeDebugger {
                 font-weight: 700;
             `;
 
+            // Add change indicator - Phase 5.5.4
+            if (isChanged) {
+                const changeIcon = document.createElement('span');
+                changeIcon.textContent = ' ✨';
+                changeIcon.style.cssText = `
+                    color: #fbbf24;
+                    font-size: 0.875rem;
+                    animation: pulse 0.5s ease-out;
+                `;
+                valueSpan.appendChild(changeIcon);
+            }
+
             row.appendChild(nameSpan);
             row.appendChild(valueSpan);
             container.appendChild(row);
         });
+
+        // Update previous variables
+        this.previousVariables = { ...this.variables };
     }
 
     /**
