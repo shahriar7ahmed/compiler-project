@@ -66,16 +66,56 @@ function renderTokens(tokens) {
     const info = createKeyValue('Total Tokens', tokens.length.toString());
     stageContent.appendChild(info);
 
-    // Create tokens table
+    // Create enhanced token visualization section
+    const tokenVizSection = document.createElement('div');
+    tokenVizSection.style.cssText = 'margin-top: 1.5rem;';
+
+    const tokenVizHeader = document.createElement('h4');
+    tokenVizHeader.textContent = '🎨 Token Visualization (Syntax Highlighted)';
+    tokenVizHeader.style.cssText = 'color: var(--text-primary); margin-bottom: 1rem; font-size: 1.125rem;';
+    tokenVizSection.appendChild(tokenVizHeader);
+
+    // Create token badge container
+    const badgeContainer = document.createElement('div');
+    badgeContainer.style.cssText = `
+        background: var(--bg-secondary);
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+    `;
+
+    tokens.forEach((token, index) => {
+        if (typeof createTokenBadge === 'function') {
+            const badge = createTokenBadge(token, index);
+            badgeContainer.appendChild(badge);
+        }
+    });
+
+    tokenVizSection.appendChild(badgeContainer);
+    stageContent.appendChild(tokenVizSection);
+
+    // Create enhanced tokens table
+    const tableSection = document.createElement('div');
+    tableSection.style.cssText = 'margin-top: 1.5rem;';
+
+    const tableHeader = document.createElement('h4');
+    tableHeader.textContent = 'Token Details Table';
+    tableHeader.style.cssText = 'color: var(--text-primary); margin-bottom: 1rem; font-size: 1.125rem;';
+    tableSection.appendChild(tableHeader);
+
     const headers = ['#', 'Type', 'Value', 'Location'];
     const rows = tokens.map((token, index) => {
-        const typeBadge = `<span style="background: var(--accent-primary); color: white; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 600;">${escapeHtml(token.type)}</span>`;
+        const color = typeof getTokenColor === 'function' ? getTokenColor(token.type) : 'var(--accent-primary)';
+        const typeBadge = `<span style="background: ${color}22; color: ${color}; border: 1px solid ${color}44; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 600;">${escapeHtml(token.type)}</span>`;
         const location = `${token.line}:${token.column}`;
 
         return [
             (index + 1).toString(),
             typeBadge,
-            `<code style="background: var(--bg-tertiary); padding: 0.25rem 0.5rem; border-radius: 0.25rem;">${escapeHtml(token.value)}</code>`,
+            `<code style="background: var(--bg-tertiary); padding: 0.25rem 0.5rem; border-radius: 0.25rem; color: ${color};">${escapeHtml(token.value)}</code>`,
             location
         ];
     });
@@ -86,7 +126,6 @@ function renderTokens(tokens) {
     table.style.cssText = `
         width: 100%;
         border-collapse: collapse;
-        margin-top: 1rem;
         background: var(--bg-secondary);
         border-radius: 0.5rem;
         overflow: hidden;
@@ -115,15 +154,16 @@ function renderTokens(tokens) {
         `;
     });
 
-    stageContent.appendChild(table);
+    tableSection.appendChild(table);
+    stageContent.appendChild(tableSection);
 
-    // Add token type summary
+    // Add token type summary with color coding
     const typeSummary = document.createElement('div');
     typeSummary.style.cssText = 'margin-top: 1.5rem;';
 
     const summaryHeader = document.createElement('h4');
     summaryHeader.textContent = 'Token Type Summary';
-    summaryHeader.style.cssText = 'color: var(--text-primary); margin-bottom: 0.5rem;';
+    summaryHeader.style.cssText = 'color: var(--text-primary); margin-bottom: 1rem; font-size: 1.125rem;';
     typeSummary.appendChild(summaryHeader);
 
     // Count token types
@@ -132,14 +172,38 @@ function renderTokens(tokens) {
         typeCounts[token.type] = (typeCounts[token.type] || 0) + 1;
     });
 
-    // Display counts
+    // Create summary grid
+    const summaryGrid = document.createElement('div');
+    summaryGrid.style.cssText = `
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 0.75rem;
+    `;
+
+    // Display counts with color coding
     Object.entries(typeCounts).forEach(([type, count]) => {
-        const countItem = createKeyValue(type, `${count} occurrence${count > 1 ? 's' : ''}`);
-        typeSummary.appendChild(countItem);
+        const color = typeof getTokenColor === 'function' ? getTokenColor(type) : 'var(--accent-primary)';
+        const countCard = document.createElement('div');
+        countCard.style.cssText = `
+            background: var(--bg-secondary);
+            border-left: 4px solid ${color};
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+        `;
+
+        countCard.innerHTML = `
+            <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.25rem;">${escapeHtml(type)}</div>
+            <div style="font-size: 1.5rem; font-weight: 700; color: ${color};">${count}</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">${count > 1 ? 'occurrences' : 'occurrence'}</div>
+        `;
+
+        summaryGrid.appendChild(countCard);
     });
 
+    typeSummary.appendChild(summaryGrid);
     stageContent.appendChild(typeSummary);
 }
+
 
 // ============================================
 // STAGE 2: Syntax Analysis (AST)

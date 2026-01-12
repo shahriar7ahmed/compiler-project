@@ -6,6 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Interactive educational compiler demonstration - see all 6 compilation stages">
     <title>Educational Compiler Demo</title>
+
+    <!-- Prism.js for Syntax Highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+
     <link rel="stylesheet" href="css/styles.css">
 </head>
 
@@ -131,7 +135,12 @@
     <div id="error-toast" class="error-toast" style="display:none;"></div>
 
     <!-- JavaScript Files -->
+    <!-- Prism.js Core -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+
+    <!-- Application Scripts -->
     <script src="js/config.js"></script>
+    <script src="js/syntax-highlighter.js"></script>
     <script src="js/api.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/renderers.js"></script>

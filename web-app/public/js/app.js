@@ -47,6 +47,12 @@ async function init() {
         showError('Failed to load demo files. Please refresh the page.');
     }
 
+    // Initialize syntax highlighting for code editor (if available)
+    if (typeof highlightEditor === 'function') {
+        // Note: Editor highlighting is optional - uses overlay technique
+        console.log('✓ Syntax highlighting available');
+    }
+
     console.log('✓ Educational Compiler initialized successfully!');
 }
 
