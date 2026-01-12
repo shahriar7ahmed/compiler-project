@@ -164,6 +164,14 @@ async function handleCompile() {
         setActiveTab(1);
         renderCurrentStage();
 
+        // Add success animation to button - Phase 5.2.4
+        if (compileButton && compilationData.success) {
+            compileButton.classList.add('success');
+            setTimeout(() => {
+                compileButton.classList.remove('success');
+            }, 600);
+        }
+
         showLoading(false);
         isCompiling = false;
         updateCompileButton(true);
