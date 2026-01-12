@@ -65,11 +65,338 @@ class OptimizationDiff {
         // Create side-by-side containers
         this.createComparisonContainers();
 
+        // Create metrics dashboard - Phase 5.4.3
+        this.createMetricsDashboard();
+
         // Render both ASTs
         this.renderBeforeAST();
         this.renderAfterAST();
 
         console.log('✓ Optimization comparison rendered');
+    }
+
+    /**
+     * Create metrics dashboard - Phase 5.4.3
+     */
+    createMetricsDashboard() {
+        const metricsPanel = document.createElement('div');
+        metricsPanel.style.cssText = `
+            background: var(--bg-primary);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            border: 2px solid var(--accent-primary);
+        `;
+
+        // Title
+        const title = document.createElement('h4');
+        title.textContent = '📊 Optimization Metrics';
+        title.style.cssText = `
+            color: var(--text-primary);
+            margin: 0 0 1rem 0;
+            font-size: 1.125rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        `;
+        metricsPanel.appendChild(title);
+
+        // Calculate metrics
+        const beforeNodeCount = this.flattenAST(this.beforeAST).length;
+        const afterNodeCount = this.flattenAST(this.afterAST).length;
+        const nodeReduction = beforeNodeCount - afterNodeCount;
+        const reductionPercent = beforeNodeCount > 0 ? ((nodeReduction / beforeNodeCount) * 100).toFixed(1) : 0;
+
+        // Estimate performance improvement (simplified)
+        const perfImprovement = (reductionPercent * 0.8).toFixed(1); // Rough estimate
+
+        // Create metrics grid
+        const metricsGrid = document.createElement('div');
+        metricsGrid.style.cssText = `
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        `;
+
+        // Metric cards
+        const metrics = [
+            {
+                label: 'Nodes Before',
+                value: beforeNodeCount,
+                color: '#ef4444',
+                icon: '📋'
+            },
+            {
+                label: 'Nodes After',
+                value: afterNodeCount,
+                color: '#10b981',
+                icon: '✨'
+            },
+            {
+                label: 'Nodes Reduced',
+                value: nodeReduction,
+                color: '#f59e0b',
+                icon: '📉'
+            },
+            {
+                label: 'Reduction',
+                value: `${reductionPercent}%`,
+                color: '#6366f1',
+                icon: '📊'
+            },
+            {
+                label: 'Perf. Improvement',
+                value: `~${perfImprovement}%`,
+                color: '#8b5cf6',
+                icon: '⚡'
+            }
+        ];
+
+        metrics.forEach(metric => {
+            const card = this.createMetricCard(metric);
+            metricsGrid.appendChild(card);
+        });
+
+        metricsPanel.appendChild(metricsGrid);
+
+        // Optimization breakdown
+        const breakdown = this.createOptimizationBreakdown();
+        metricsPanel.appendChild(breakdown);
+
+        // Progress bars
+        const progressBars = this.createProgressBars(reductionPercent);
+        metricsPanel.appendChild(progressBars);
+
+        this.container.appendChild(metricsPanel);
+    }
+
+    /**
+     * Create metric card - Phase 5.4.3
+     */
+    createMetricCard(metric) {
+        const card = document.createElement('div');
+        card.style.cssText = `
+            background: var(--bg-secondary);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border-left: 4px solid ${metric.color};
+            transition: transform 0.2s, box-shadow 0.2s;
+        `;
+
+        card.addEventListener('mouseenter', () => {
+            card.style.transform = 'translateY(-2px)';
+            card.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+        });
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'translateY(0)';
+            card.style.boxShadow = 'none';
+        });
+
+        const iconLabel = document.createElement('div');
+        iconLabel.style.cssText = `
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        `;
+
+        const icon = document.createElement('span');
+        icon.textContent = metric.icon;
+        icon.style.fontSize = '1.25rem';
+
+        const label = document.createElement('div');
+        label.textContent = metric.label;
+        label.style.cssText = `
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        `;
+
+        iconLabel.appendChild(icon);
+        iconLabel.appendChild(label);
+
+        const value = document.createElement('div');
+        value.textContent = metric.value;
+        value.style.cssText = `
+            color: ${metric.color};
+            font-size: 1.75rem;
+            font-weight: 700;
+        `;
+
+        card.appendChild(iconLabel);
+        card.appendChild(value);
+
+        return card;
+    }
+
+    /**
+     * Create optimization breakdown - Phase 5.4.3
+     */
+    createOptimizationBreakdown() {
+        const section = document.createElement('div');
+        section.style.marginBottom = '1.5rem';
+
+        const title = document.createElement('h5');
+        title.textContent = '🔍 Optimization Breakdown';
+        title.style.cssText = `
+            color: var(--text-primary);
+            margin: 0 0 1rem 0;
+            font-size: 1rem;
+        `;
+        section.appendChild(title);
+
+        const types = [
+            {
+                name: 'Eliminated Nodes',
+                count: this.diffResult.eliminated.length,
+                color: '#ef4444',
+                icon: '🗑️'
+            },
+            {
+                name: 'Optimized Nodes',
+                count: this.diffResult.optimized.length,
+                color: '#10b981',
+                icon: '✨'
+            },
+            {
+                name: 'Unchanged Nodes',
+                count: this.diffResult.unchanged.length,
+                color: '#6b7280',
+                icon: '➖'
+            }
+        ];
+
+        types.forEach(type => {
+            const row = document.createElement('div');
+            row.style.cssText = `
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.75rem;
+                background: var(--bg-secondary);
+                border-radius: 0.5rem;
+                margin-bottom: 0.5rem;
+                border-left: 3px solid ${type.color};
+            `;
+
+            const nameSection = document.createElement('div');
+            nameSection.style.cssText = `
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            `;
+
+            const icon = document.createElement('span');
+            icon.textContent = type.icon;
+
+            const name = document.createElement('span');
+            name.textContent = type.name;
+            name.style.color = 'var(--text-primary)';
+
+            nameSection.appendChild(icon);
+            nameSection.appendChild(name);
+
+            const count = document.createElement('span');
+            count.textContent = type.count;
+            count.style.cssText = `
+                color: ${type.color};
+                font-weight: 700;
+                font-size: 1.125rem;
+            `;
+
+            row.appendChild(nameSection);
+            row.appendChild(count);
+            section.appendChild(row);
+        });
+
+        return section;
+    }
+
+    /**
+     * Create progress bars - Phase 5.4.3
+     */
+    createProgressBars(reductionPercent) {
+        const section = document.createElement('div');
+
+        const title = document.createElement('h5');
+        title.textContent = '📈 Optimization Progress';
+        title.style.cssText = `
+            color: var(--text-primary);
+            margin: 0 0 1rem 0;
+            font-size: 1rem;
+        `;
+        section.appendChild(title);
+
+        // Node reduction bar
+        const barContainer = document.createElement('div');
+        barContainer.style.cssText = `
+            background: var(--bg-secondary);
+            border-radius: 0.5rem;
+            padding: 1rem;
+        `;
+
+        const barLabel = document.createElement('div');
+        barLabel.style.cssText = `
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        `;
+
+        const labelText = document.createElement('span');
+        labelText.textContent = 'Code Size Reduction';
+        labelText.style.color = 'var(--text-secondary)';
+
+        const labelValue = document.createElement('span');
+        labelValue.textContent = `${reductionPercent}%`;
+        labelValue.style.cssText = `
+            color: var(--success);
+            font-weight: 700;
+        `;
+
+        barLabel.appendChild(labelText);
+        barLabel.appendChild(labelValue);
+
+        const barTrack = document.createElement('div');
+        barTrack.style.cssText = `
+            width: 100%;
+            height: 24px;
+            background: var(--bg-primary);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        `;
+
+        const barFill = document.createElement('div');
+        barFill.style.cssText = `
+            height: 100%;
+            width: ${Math.min(reductionPercent, 100)}%;
+            background: linear-gradient(90deg, #10b981, #059669);
+            border-radius: 12px;
+            transition: width 1s ease;
+            position: relative;
+            overflow: hidden;
+        `;
+
+        // Animated shimmer effect
+        const shimmer = document.createElement('div');
+        shimmer.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        `;
+
+        barFill.appendChild(shimmer);
+        barTrack.appendChild(barFill);
+        barContainer.appendChild(barLabel);
+        barContainer.appendChild(barTrack);
+        section.appendChild(barContainer);
+
+        return section;
     }
 
     /**
