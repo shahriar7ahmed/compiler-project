@@ -218,6 +218,47 @@ function renderAST(ast) {
     );
     stageContent.appendChild(header);
 
+    // Add view toggle - Phase 5.3 Integration
+    const viewToggle = document.createElement('div');
+    viewToggle.style.cssText = 'margin: 1rem 0; display: flex; gap: 0.5rem;';
+
+    const textViewBtn = document.createElement('button');
+    textViewBtn.textContent = '📝 Text View';
+    textViewBtn.className = 'view-toggle-btn active';
+    textViewBtn.style.cssText = `
+        padding: 0.5rem 1rem;
+        background: var(--accent-primary);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s;
+    `;
+
+    const treeViewBtn = document.createElement('button');
+    treeViewBtn.textContent = '🌳 Tree View';
+    treeViewBtn.className = 'view-toggle-btn';
+    treeViewBtn.style.cssText = `
+        padding: 0.5rem 1rem;
+        background: var(--bg-tertiary);
+        color: var(--text-secondary);
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s;
+    `;
+
+    viewToggle.appendChild(textViewBtn);
+    viewToggle.appendChild(treeViewBtn);
+    stageContent.appendChild(viewToggle);
+
+    // Text view container
+    const textViewContainer = document.createElement('div');
+    textViewContainer.id = 'ast-text-view';
+    textViewContainer.style.display = 'block';
+
     if (!ast || ast.length === 0) {
         const noAST = createInfoBox('No AST nodes found', 'warning');
         stageContent.appendChild(noAST);
@@ -510,11 +551,54 @@ function renderOptimization(data) {
     );
     stageContent.appendChild(header);
 
-    const optimizationCount = data.optimizations || 0;
+    if (data.optimizationsApplied && data.optimizationsApplied.length > 0) {
+        // Add view toggle - Phase 5.4 Integration
+        const viewToggle = document.createElement('div');
+        viewToggle.style.cssText = 'margin: 1rem 0; display: flex; gap: 0.5rem;';
 
-    // Optimization count display
-    const countBox = document.createElement('div');
-    countBox.style.cssText = `
+        const simpleViewBtn = document.createElement('button');
+        simpleViewBtn.textContent = '📊 Simple View';
+        simpleViewBtn.className = 'view-toggle-btn active';
+        simpleViewBtn.style.cssText = `
+            padding: 0.5rem 1rem;
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        `;
+
+        const comparisonViewBtn = document.createElement('button');
+        comparisonViewBtn.textContent = '🔄 Detailed Comparison';
+        comparisonViewBtn.className = 'view-toggle-btn';
+        comparisonViewBtn.style.cssText = `
+            padding: 0.5rem 1rem;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        `;
+
+        viewToggle.appendChild(simpleViewBtn);
+        viewToggle.appendChild(comparisonViewBtn);
+        stageContent.appendChild(viewToggle);
+
+        // Simple view container
+        const simpleViewContainer = document.createElement('div');
+        simpleViewContainer.id = 'optimization-simple-view';
+        simpleViewContainer.style.display = 'block';
+
+        // Optimization count display
+        const optimizationCount = data.optimizations || 0;
+
+        // Optimization count display
+        const countBox = document.createElement('div');
+        countBox.style.cssText = `
         background: var(--bg-secondary);
         padding: 1.5rem;
         border-radius: 0.75rem;
@@ -523,57 +607,57 @@ function renderOptimization(data) {
         border: 2px solid var(--accent-primary);
     `;
 
-    const countNumber = document.createElement('div');
-    countNumber.textContent = optimizationCount.toString();
-    countNumber.style.cssText = `
+        const countNumber = document.createElement('div');
+        countNumber.textContent = optimizationCount.toString();
+        countNumber.style.cssText = `
         font-size: 3rem;
         font-weight: 700;
         color: var(--accent-primary);
         margin-bottom: 0.5rem;
     `;
-    countBox.appendChild(countNumber);
+        countBox.appendChild(countNumber);
 
-    const countLabel = document.createElement('div');
-    countLabel.textContent = `Optimization${optimizationCount !== 1 ? 's' : ''} Applied`;
-    countLabel.style.cssText = 'color: var(--text-secondary); font-size: 1.125rem;';
-    countBox.appendChild(countLabel);
+        const countLabel = document.createElement('div');
+        countLabel.textContent = `Optimization${optimizationCount !== 1 ? 's' : ''} Applied`;
+        countLabel.style.cssText = 'color: var(--text-secondary); font-size: 1.125rem;';
+        countBox.appendChild(countLabel);
 
-    stageContent.appendChild(countBox);
+        stageContent.appendChild(countBox);
 
-    // Optimization details
-    if (optimizationCount > 0) {
-        const infoBox = createInfoBox(
-            '✓ Code has been optimized! Constant expressions were evaluated at compile-time.',
-            'success'
-        );
-        stageContent.appendChild(infoBox);
+        // Optimization details
+        if (optimizationCount > 0) {
+            const infoBox = createInfoBox(
+                '✓ Code has been optimized! Constant expressions were evaluated at compile-time.',
+                'success'
+            );
+            stageContent.appendChild(infoBox);
 
-        // Optimization types
-        const typesContainer = document.createElement('div');
-        typesContainer.style.cssText = 'margin: 1.5rem 0;';
+            // Optimization types
+            const typesContainer = document.createElement('div');
+            typesContainer.style.cssText = 'margin: 1.5rem 0;';
 
-        const typesHeader = document.createElement('h4');
-        typesHeader.textContent = 'Optimizations Performed';
-        typesHeader.style.cssText = 'color: var(--text-primary); margin-bottom: 1rem;';
-        typesContainer.appendChild(typesHeader);
+            const typesHeader = document.createElement('h4');
+            typesHeader.textContent = 'Optimizations Performed';
+            typesHeader.style.cssText = 'color: var(--text-primary); margin-bottom: 1rem;';
+            typesContainer.appendChild(typesHeader);
 
-        // List of optimization types
-        const optimizations = [
-            {
-                name: 'Constant Folding',
-                description: 'Evaluating constant expressions at compile time',
-                applied: optimizationCount > 0
-            },
-            {
-                name: 'Dead Code Elimination',
-                description: 'Removing unreachable code',
-                applied: false
-            }
-        ];
+            // List of optimization types
+            const optimizations = [
+                {
+                    name: 'Constant Folding',
+                    description: 'Evaluating constant expressions at compile time',
+                    applied: optimizationCount > 0
+                },
+                {
+                    name: 'Dead Code Elimination',
+                    description: 'Removing unreachable code',
+                    applied: false
+                }
+            ];
 
-        optimizations.forEach(opt => {
-            const optItem = document.createElement('div');
-            optItem.style.cssText = `
+            optimizations.forEach(opt => {
+                const optItem = document.createElement('div');
+                optItem.style.cssText = `
                 padding: 1rem;
                 background: var(--bg-secondary);
                 border-radius: 0.5rem;
@@ -581,91 +665,132 @@ function renderOptimization(data) {
                 border-left: 4px solid ${opt.applied ? 'var(--success)' : 'var(--bg-hover)'};
             `;
 
-            const optName = document.createElement('div');
-            optName.style.cssText = 'display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;';
+                const optName = document.createElement('div');
+                optName.style.cssText = 'display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;';
 
-            const badge = createBadge(opt.applied ? 'Applied' : 'Not Applied', opt.applied ? 'success' : 'info');
-            optName.appendChild(badge);
+                const badge = createBadge(opt.applied ? 'Applied' : 'Not Applied', opt.applied ? 'success' : 'info');
+                optName.appendChild(badge);
 
-            const nameText = document.createElement('span');
-            nameText.textContent = opt.name;
-            nameText.style.cssText = 'font-weight: 600; color: var(--text-primary);';
-            optName.appendChild(nameText);
+                const nameText = document.createElement('span');
+                nameText.textContent = opt.name;
+                nameText.style.cssText = 'font-weight: 600; color: var(--text-primary);';
+                optName.appendChild(nameText);
 
-            optItem.appendChild(optName);
+                optItem.appendChild(optName);
 
-            const optDesc = document.createElement('div');
-            optDesc.textContent = opt.description;
-            optDesc.style.cssText = 'color: var(--text-secondary); font-size: 0.875rem;';
-            optItem.appendChild(optDesc);
+                const optDesc = document.createElement('div');
+                optDesc.textContent = opt.description;
+                optDesc.style.cssText = 'color: var(--text-secondary); font-size: 0.875rem;';
+                optItem.appendChild(optDesc);
 
-            typesContainer.appendChild(optItem);
-        });
+                typesContainer.appendChild(optItem);
+            });
+            stageContent.appendChild(typesContainer);
 
-        stageContent.appendChild(typesContainer);
+            // Optimization summary (new)
+            const optimizationSummary = document.createElement('div');
+            optimizationSummary.style.cssText = 'margin-top: 1rem;';
+            optimizationSummary.appendChild(createKeyValue('Total Optimizations', data.optimizationsApplied.length.toString()));
 
-        // Performance impact
-        const impactBox = document.createElement('div');
-        impactBox.style.cssText = `
-            background: var(--bg-secondary);
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            margin-top: 1.5rem;
-        `;
+            data.optimizationsApplied.forEach((opt, index) => {
+                optimizationSummary.appendChild(createKeyValue(
+                    `Optimization ${index + 1}`,
+                    opt || 'Unknown optimization'
+                ));
+            });
 
-        const impactHeader = document.createElement('h4');
-        impactHeader.textContent = 'Performance Impact';
-        impactHeader.style.cssText = 'color: var(--text-primary); margin-bottom: 1rem;';
-        impactBox.appendChild(impactHeader);
+            simpleViewContainer.appendChild(optimizationSummary);
 
-        impactBox.appendChild(createKeyValue('Execution Speed', '↑ Faster (constants pre-computed)'));
-        impactBox.appendChild(createKeyValue('Code Size', '↓ Smaller (fewer instructions)'));
-        impactBox.appendChild(createKeyValue('Runtime Efficiency', '↑ Improved'));
+            // Performance impact (modified and moved)
+            const impactBox = createInfoBox('', 'success');
+            impactBox.style.cssText += ' margin-top: 1rem;';
+            impactBox.querySelector('div').innerHTML = '<strong>📈 Performance Impact:</strong>';
 
-        stageContent.appendChild(impactBox);
+            impactBox.appendChild(createKeyValue('Execution Speed', '↑ Faster (constants pre-computed)'));
+            impactBox.appendChild(createKeyValue('Code Size', '↓ Smaller (fewer instructions)'));
+            impactBox.appendChild(createKeyValue('Runtime Efficiency', '↑ Improved'));
 
-    } else {
-        const noOptBox = createInfoBox(
-            'No optimizations were applied. The code is already optimal.',
-            'info'
+            simpleViewContainer.appendChild(impactBox);
+
+            // Comparison view container - Phase 5.4
+            const comparisonViewContainer = document.createElement('div');
+            comparisonViewContainer.id = 'optimization-comparison-view';
+            comparisonViewContainer.style.display = 'none';
+
+            stageContent.appendChild(simpleViewContainer);
+            stageContent.appendChild(comparisonViewContainer);
+
+            // Toggle functionality - Phase 5.4
+            let optimizationDiff = null;
+
+            simpleViewBtn.addEventListener('click', () => {
+                simpleViewBtn.style.background = 'var(--accent-primary)';
+                simpleViewBtn.style.color = 'white';
+                comparisonViewBtn.style.background = 'var(--bg-tertiary)';
+                comparisonViewBtn.style.color = 'var(--text-secondary)';
+
+                simpleViewContainer.style.display = 'block';
+                comparisonViewContainer.style.display = 'none';
+            });
+
+            comparisonViewBtn.addEventListener('click', () => {
+                comparisonViewBtn.style.background = 'var(--accent-primary)';
+                comparisonViewBtn.style.color = 'white';
+                simpleViewBtn.style.background = 'var(--bg-tertiary)';
+                simpleViewBtn.style.color = 'var(--text-secondary)';
+
+                simpleViewContainer.style.display = 'none';
+                comparisonViewContainer.style.display = 'block';
+
+                // Initialize comparison if not already done - Phase 5.4
+                if (!optimizationDiff && typeof OptimizationDiff !== 'undefined') {
+                    optimizationDiff = new OptimizationDiff('optimization-comparison-view');
+                    optimizationDiff.compare(data.originalAST, data.optimizedAST, data.optimizationsApplied.length);
+                }
+            });
+
+        } else {
+            const noOptBox = createInfoBox(
+                'No optimizations were applied. The code is already optimal.',
+                'info'
+            );
+            stageContent.appendChild(noOptBox);
+        }
+    }
+
+    // ============================================
+    // STAGE 5: Code Generation (Bytecode)
+    // ============================================
+    function renderBytecode(bytecode) {
+        const stageContent = document.getElementById('stage-content');
+
+        // Add header
+        const header = createSectionHeader(
+            'Stage 5: Code Generation',
+            'Bytecode instructions for virtual machine execution'
         );
-        stageContent.appendChild(noOptBox);
-    }
-}
+        stageContent.appendChild(header);
 
-// ============================================
-// STAGE 5: Code Generation (Bytecode)
-// ============================================
-function renderBytecode(bytecode) {
-    const stageContent = document.getElementById('stage-content');
+        if (!bytecode || bytecode.length === 0) {
+            const noBytecode = createInfoBox('No bytecode generated', 'warning');
+            stageContent.appendChild(noBytecode);
+            return;
+        }
 
-    // Add header
-    const header = createSectionHeader(
-        'Stage 5: Code Generation',
-        'Bytecode instructions for virtual machine execution'
-    );
-    stageContent.appendChild(header);
+        // Bytecode stats
+        const stats = document.createElement('div');
+        stats.style.cssText = 'margin: 1rem 0; display: flex; gap: 1rem;';
+        stats.appendChild(createKeyValue('Total Instructions', bytecode.length.toString()));
+        stageContent.appendChild(stats);
 
-    if (!bytecode || bytecode.length === 0) {
-        const noBytecode = createInfoBox('No bytecode generated', 'warning');
-        stageContent.appendChild(noBytecode);
-        return;
-    }
+        // Add debugger toggle - Phase 5.5.6
+        const viewToggle = document.createElement('div');
+        viewToggle.style.cssText = 'margin: 1rem 0; display: flex; gap: 0.5rem;';
 
-    // Bytecode stats
-    const stats = document.createElement('div');
-    stats.style.cssText = 'margin: 1rem 0; display: flex; gap: 1rem;';
-    stats.appendChild(createKeyValue('Total Instructions', bytecode.length.toString()));
-    stageContent.appendChild(stats);
-
-    // Add debugger toggle - Phase 5.5.6
-    const viewToggle = document.createElement('div');
-    viewToggle.style.cssText = 'margin: 1rem 0; display: flex; gap: 0.5rem;';
-
-    const tableViewBtn = document.createElement('button');
-    tableViewBtn.textContent = '📋 Table View';
-    tableViewBtn.className = 'view-toggle-btn active';
-    tableViewBtn.style.cssText = `
+        const tableViewBtn = document.createElement('button');
+        tableViewBtn.textContent = '📋 Table View';
+        tableViewBtn.className = 'view-toggle-btn active';
+        tableViewBtn.style.cssText = `
         padding: 0.5rem 1rem;
         background: var(--accent-primary);
         color: white;
@@ -676,10 +801,10 @@ function renderBytecode(bytecode) {
         transition: all 0.2s;
     `;
 
-    const debuggerViewBtn = document.createElement('button');
-    debuggerViewBtn.textContent = '🐛 Debugger View';
-    debuggerViewBtn.className = 'view-toggle-btn';
-    debuggerViewBtn.style.cssText = `
+        const debuggerViewBtn = document.createElement('button');
+        debuggerViewBtn.textContent = '🐛 Debugger View';
+        debuggerViewBtn.className = 'view-toggle-btn';
+        debuggerViewBtn.style.cssText = `
         padding: 0.5rem 1rem;
         background: var(--bg-tertiary);
         color: var(--text-secondary);
@@ -690,55 +815,55 @@ function renderBytecode(bytecode) {
         transition: all 0.2s;
     `;
 
-    viewToggle.appendChild(tableViewBtn);
-    viewToggle.appendChild(debuggerViewBtn);
-    stageContent.appendChild(viewToggle);
+        viewToggle.appendChild(tableViewBtn);
+        viewToggle.appendChild(debuggerViewBtn);
+        stageContent.appendChild(viewToggle);
 
-    // Table view container
-    const tableViewContainer = document.createElement('div');
-    tableViewContainer.id = 'bytecode-table-view';
-    tableViewContainer.style.display = 'block';
+        // Table view container
+        const tableViewContainer = document.createElement('div');
+        tableViewContainer.id = 'bytecode-table-view';
+        tableViewContainer.style.display = 'block';
 
-    // Bytecode table
-    const headers = ['Address', 'Opcode', 'Operand', 'Description'];
-    const rows = bytecode.map((instr, index) => {
-        const address = `<code style="background: var(--bg-hover); padding: 0.25rem 0.5rem; border-radius: 0.25rem; color: var(--accent-light);">${index.toString().padStart(3, '0')}</code>`;
+        // Bytecode table
+        const headers = ['Address', 'Opcode', 'Operand', 'Description'];
+        const rows = bytecode.map((instr, index) => {
+            const address = `<code style="background: var(--bg-hover); padding: 0.25rem 0.5rem; border-radius: 0.25rem; color: var(--accent-light);">${index.toString().padStart(3, '0')}</code>`;
 
-        const opcodeBadge = `<span style="background: var(--accent-primary); color: white; padding: 0.25rem 0.75rem; border-radius: 0.25rem; font-size: 0.813rem; font-weight: 600; font-family: 'Fira Code', monospace;">${escapeHtml(instr.opcode)}</span>`;
+            const opcodeBadge = `<span style="background: var(--accent-primary); color: white; padding: 0.25rem 0.75rem; border-radius: 0.25rem; font-size: 0.813rem; font-weight: 600; font-family: 'Fira Code', monospace;">${escapeHtml(instr.opcode)}</span>`;
 
-        let operand = '-';
-        let description = '';
+            let operand = '-';
+            let description = '';
 
-        if (instr.opcode === 'LOAD_CONST' && instr.operand !== undefined) {
-            operand = `<code style="background: var(--bg-tertiary); padding: 0.25rem 0.5rem; border-radius: 0.25rem;">${instr.operand}</code>`;
-            description = `Push constant ${instr.operand} onto stack`;
-        } else if (instr.opcode === 'STORE_VAR' && instr.variable) {
-            operand = `<code style="background: var(--bg-tertiary); padding: 0.25rem 0.5rem; border-radius: 0.25rem;">${escapeHtml(instr.variable)}</code>`;
-            description = `Store top of stack in variable "${escapeHtml(instr.variable)}"`;
-        } else if (instr.opcode === 'LOAD_VAR' && instr.variable) {
-            operand = `<code style="background: var(--bg-tertiary); padding: 0.25rem 0.5rem; border-radius: 0.25rem;">${escapeHtml(instr.variable)}</code>`;
-            description = `Push variable "${escapeHtml(instr.variable)}" onto stack`;
-        } else if (instr.opcode === 'ADD') {
-            description = 'Pop two values, add them, push result';
-        } else if (instr.opcode === 'SUB') {
-            description = 'Pop two values, subtract them, push result';
-        } else if (instr.opcode === 'MUL') {
-            description = 'Pop two values, multiply them, push result';
-        } else if (instr.opcode === 'DIV') {
-            description = 'Pop two values, divide them, push result';
-        } else if (instr.opcode === 'PRINT') {
-            description = 'Print top of stack to output';
-        } else if (instr.opcode === 'HALT') {
-            description = 'Stop program execution';
-        }
+            if (instr.opcode === 'LOAD_CONST' && instr.operand !== undefined) {
+                operand = `<code style="background: var(--bg-tertiary); padding: 0.25rem 0.5rem; border-radius: 0.25rem;">${instr.operand}</code>`;
+                description = `Push constant ${instr.operand} onto stack`;
+            } else if (instr.opcode === 'STORE_VAR' && instr.variable) {
+                operand = `<code style="background: var(--bg-tertiary); padding: 0.25rem 0.5rem; border-radius: 0.25rem;">${escapeHtml(instr.variable)}</code>`;
+                description = `Store top of stack in variable "${escapeHtml(instr.variable)}"`;
+            } else if (instr.opcode === 'LOAD_VAR' && instr.variable) {
+                operand = `<code style="background: var(--bg-tertiary); padding: 0.25rem 0.5rem; border-radius: 0.25rem;">${escapeHtml(instr.variable)}</code>`;
+                description = `Push variable "${escapeHtml(instr.variable)}" onto stack`;
+            } else if (instr.opcode === 'ADD') {
+                description = 'Pop two values, add them, push result';
+            } else if (instr.opcode === 'SUB') {
+                description = 'Pop two values, subtract them, push result';
+            } else if (instr.opcode === 'MUL') {
+                description = 'Pop two values, multiply them, push result';
+            } else if (instr.opcode === 'DIV') {
+                description = 'Pop two values, divide them, push result';
+            } else if (instr.opcode === 'PRINT') {
+                description = 'Print top of stack to output';
+            } else if (instr.opcode === 'HALT') {
+                description = 'Stop program execution';
+            }
 
-        return [address, opcodeBadge, operand, description];
-    });
+            return [address, opcodeBadge, operand, description];
+        });
 
-    const table = createTable(headers, rows);
+        const table = createTable(headers, rows);
 
-    // Style the table
-    table.style.cssText = `
+        // Style the table
+        table.style.cssText = `
         width: 100%;
         border-collapse: collapse;
         margin-top: 1rem;
@@ -748,9 +873,9 @@ function renderBytecode(bytecode) {
         font-family: 'Fira Code', 'Consolas', monospace;
     `;
 
-    const ths = table.querySelectorAll('th');
-    ths.forEach(th => {
-        th.style.cssText = `
+        const ths = table.querySelectorAll('th');
+        ths.forEach(th => {
+            th.style.cssText = `
             background: var(--bg-tertiary);
             padding: 0.75rem;
             text-align: left;
@@ -758,198 +883,198 @@ function renderBytecode(bytecode) {
             color: var(--text-primary);
             border-bottom: 2px solid var(--bg-hover);
         `;
-    });
+        });
 
-    const tds = table.querySelectorAll('td');
-    tds.forEach(td => {
-        td.style.cssText = `
+        const tds = table.querySelectorAll('td');
+        tds.forEach(td => {
+            td.style.cssText = `
             padding: 0.75rem;
             border-bottom: 1px solid var(--bg-tertiary);
             color: var(--text-secondary);
             font-size: 0.875rem;
         `;
-    });
-
-    stageContent.appendChild(table);
-
-    tableViewContainer.appendChild(table);
-
-    // Debugger view container - Phase 5.5.6
-    const debuggerViewContainer = document.createElement('div');
-    debuggerViewContainer.id = 'bytecode-debugger-view';
-    debuggerViewContainer.style.display = 'none';
-
-    stageContent.appendChild(tableViewContainer);
-    stageContent.appendChild(debuggerViewContainer);
-
-    // Toggle functionality - Phase 5.5.6
-    let bytecodeDebugger = null;
-
-    tableViewBtn.addEventListener('click', () => {
-        tableViewBtn.style.background = 'var(--accent-primary)';
-        tableViewBtn.style.color = 'white';
-        debuggerViewBtn.style.background = 'var(--bg-tertiary)';
-        debuggerViewBtn.style.color = 'var(--text-secondary)';
-
-        tableViewContainer.style.display = 'block';
-        debuggerViewContainer.style.display = 'none';
-    });
-
-    debuggerViewBtn.addEventListener('click', () => {
-        debuggerViewBtn.style.background = 'var(--accent-primary)';
-        debuggerViewBtn.style.color = 'white';
-        tableViewBtn.style.background = 'var(--bg-tertiary)';
-        tableViewBtn.style.color = 'var(--text-secondary)';
-
-        tableViewContainer.style.display = 'none';
-        debuggerViewContainer.style.display = 'block';
-
-        // Initialize debugger if not already done - Phase 5.5.6
-        if (!bytecodeDebugger && typeof BytecodeDebugger !== 'undefined') {
-            bytecodeDebugger = new BytecodeDebugger('bytecode-debugger-view');
-            bytecodeDebugger.load(bytecode);
-        }
-    });
-
-    // Execution info
-    const infoBox = createInfoBox(
-        'Bytecode is ready for execution by the virtual machine! Switch to Debugger View for step-by-step execution.',
-        'success'
-    );
-    stageContent.appendChild(infoBox);
-}
-
-// ============================================
-// STAGE 6: Execution
-// ============================================
-function renderExecution(data) {
-    const stageContent = document.getElementById('stage-content');
-
-    // Add header
-    const header = createSectionHeader(
-        'Stage 6: Program Execution',
-        'Virtual machine execution results'
-    );
-    stageContent.appendChild(header);
-
-    // Check if output exists
-    if (!data.output || data.output.length === 0) {
-        const noOutput = createInfoBox('No program output', 'info');
-        stageContent.appendChild(noOutput);
-        return;
-    }
-
-    // Success message
-    const successBox = createInfoBox(
-        '✓ Program executed successfully!',
-        'success'
-    );
-    stageContent.appendChild(successBox);
-
-    // Output section
-    const outputSection = document.createElement('div');
-    outputSection.style.cssText = 'margin: 1.5rem 0;';
-
-    const outputHeader = document.createElement('h4');
-    outputHeader.textContent = 'Program Output';
-    outputHeader.style.cssText = 'color: var(--text-primary); margin-bottom: 1rem; font-size: 1.125rem;';
-    outputSection.appendChild(outputHeader);
-
-    // Output console
-    const outputConsole = document.createElement('div');
-    outputConsole.style.cssText = `
-        background: #1a1a2e;
-        border: 1px solid var(--bg-hover);
-        border-radius: 0.5rem;
-        padding: 1.5rem;
-        font-family: 'Fira Code', 'Consolas', monospace;
-        color: #0f9;
-        font-size: 0.95rem;
-        line-height: 1.8;
-        min-height: 100px;
-    `;
-
-    // Parse output - API returns a string, split by newlines
-    let outputLines = [];
-    if (data.output && typeof data.output === 'string') {
-        // Split by newline and filter out empty lines
-        outputLines = data.output.split('\n').filter(line => line.trim() !== '');
-    }
-
-    // Check if there's any output to display
-    if (outputLines.length === 0) {
-        const noOutputMsg = document.createElement('div');
-        noOutputMsg.textContent = '(No output - program didn\'t print anything)';
-        noOutputMsg.style.cssText = 'color: var(--text-muted); font-style: italic;';
-        outputConsole.appendChild(noOutputMsg);
-    } else {
-        // Add each output line
-        outputLines.forEach(line => {
-            const outputLine = document.createElement('div');
-            outputLine.textContent = `> ${line}`;
-            outputLine.style.cssText = 'margin: 0.25rem 0;';
-            outputConsole.appendChild(outputLine);
         });
+
+        stageContent.appendChild(table);
+
+        tableViewContainer.appendChild(table);
+
+        // Debugger view container - Phase 5.5.6
+        const debuggerViewContainer = document.createElement('div');
+        debuggerViewContainer.id = 'bytecode-debugger-view';
+        debuggerViewContainer.style.display = 'none';
+
+        stageContent.appendChild(tableViewContainer);
+        stageContent.appendChild(debuggerViewContainer);
+
+        // Toggle functionality - Phase 5.5.6
+        let bytecodeDebugger = null;
+
+        tableViewBtn.addEventListener('click', () => {
+            tableViewBtn.style.background = 'var(--accent-primary)';
+            tableViewBtn.style.color = 'white';
+            debuggerViewBtn.style.background = 'var(--bg-tertiary)';
+            debuggerViewBtn.style.color = 'var(--text-secondary)';
+
+            tableViewContainer.style.display = 'block';
+            debuggerViewContainer.style.display = 'none';
+        });
+
+        debuggerViewBtn.addEventListener('click', () => {
+            debuggerViewBtn.style.background = 'var(--accent-primary)';
+            debuggerViewBtn.style.color = 'white';
+            tableViewBtn.style.background = 'var(--bg-tertiary)';
+            tableViewBtn.style.color = 'var(--text-secondary)';
+
+            tableViewContainer.style.display = 'none';
+            debuggerViewContainer.style.display = 'block';
+
+            // Initialize visualizer if not already done - Phase 5.3
+            if (!astVisualizer && typeof ASTVisualizer !== 'undefined') {
+                astVisualizer = new ASTVisualizer('ast-tree-view');
+                astVisualizer.render(ast);
+            }
+        });
+
+        // Execution info
+        const infoBox = createInfoBox(
+            'Bytecode is ready for execution by the virtual machine! Switch to Debugger View for step-by-step execution.',
+            'success'
+        );
+        stageContent.appendChild(infoBox);
     }
 
-    outputSection.appendChild(outputConsole);
-    stageContent.appendChild(outputSection);
+    // ============================================
+    // STAGE 6: Execution
+    // ============================================
+    function renderExecution(data) {
+        const stageContent = document.getElementById('stage-content');
 
-    // Execution statistics
-    const statsBox = document.createElement('div');
-    statsBox.style.cssText = `
+        // Add header
+        const header = createSectionHeader(
+            'Stage 6: Program Execution',
+            'Virtual machine execution results'
+        );
+        stageContent.appendChild(header);
+
+        // Check if output exists
+        if (!data.output || data.output.length === 0) {
+            const noOutput = createInfoBox('No program output', 'info');
+            stageContent.appendChild(noOutput);
+            return;
+        }
+
+        // Success message
+        const successBox = createInfoBox(
+            '✓ Program executed successfully!',
+            'success'
+        );
+        stageContent.appendChild(successBox);
+
+        // Output section
+        const outputSection = document.createElement('div');
+        outputSection.style.cssText = 'margin: 1.5rem 0;';
+
+        const outputHeader = document.createElement('h4');
+        outputHeader.textContent = 'Program Output';
+        outputHeader.style.cssText = 'color: var(--text-primary); margin-bottom: 1rem; font-size: 1.125rem;';
+        outputSection.appendChild(outputHeader);
+
+        // Output console
+        const outputConsole = document.createElement('div');
+        outputConsole.style.cssText = `
+            background: #1a1a2e;
+            border: 1px solid var(--bg-hover);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            color: #0f9;
+            font-size: 0.95rem;
+            line-height: 1.8;
+            min-height: 100px;
+        `;
+
+        // Parse output - API returns a string, split by newlines
+        let outputLines = [];
+        if (data.output && typeof data.output === 'string') {
+            // Split by newline and filter out empty lines
+            outputLines = data.output.split('\n').filter(line => line.trim() !== '');
+        }
+
+        // Check if there's any output to display
+        if (outputLines.length === 0) {
+            const noOutputMsg = document.createElement('div');
+            noOutputMsg.textContent = '(No output - program didn\'t print anything)';
+            noOutputMsg.style.cssText = 'color: var(--text-muted); font-style: italic;';
+            outputConsole.appendChild(noOutputMsg);
+        } else {
+            // Add each output line
+            outputLines.forEach(line => {
+                const outputLine = document.createElement('div');
+                outputLine.textContent = `> ${line}`;
+                outputLine.style.cssText = 'margin: 0.25rem 0;';
+                outputConsole.appendChild(outputLine);
+            });
+        }
+
+        outputSection.appendChild(outputConsole);
+        stageContent.appendChild(outputSection);
+
+        // Execution statistics
+        const statsBox = document.createElement('div');
+        statsBox.style.cssText = `
         background: var(--bg-secondary);
         padding: 1.5rem;
         border-radius: 0.5rem;
         margin-top: 1.5rem;
     `;
 
-    const statsHeader = document.createElement('h4');
-    statsHeader.textContent = 'Execution Statistics';
-    statsHeader.style.cssText = 'color: var(--text-primary); margin-bottom: 1rem;';
-    statsBox.appendChild(statsHeader);
+        const statsHeader = document.createElement('h4');
+        statsHeader.textContent = 'Execution Statistics';
+        statsHeader.style.cssText = 'color: var(--text-primary); margin-bottom: 1rem;';
+        statsBox.appendChild(statsHeader);
 
-    const instructionsExecuted = data.instructionsExecuted || data.bytecode?.length || 0;
-    const outputLineCount = data.output ? data.output.split('\n').filter(l => l.trim() !== '').length : 0;
+        const instructionsExecuted = data.instructionsExecuted || data.bytecode?.length || 0;
+        const outputLineCount = data.output ? data.output.split('\n').filter(l => l.trim() !== '').length : 0;
 
-    statsBox.appendChild(createKeyValue('Instructions Executed', instructionsExecuted.toString()));
-    statsBox.appendChild(createKeyValue('Output Lines', outputLineCount.toString()));
-    statsBox.appendChild(createKeyValue('Exit Status', '✓ Success (0)'));
+        statsBox.appendChild(createKeyValue('Instructions Executed', instructionsExecuted.toString()));
+        statsBox.appendChild(createKeyValue('Output Lines', outputLineCount.toString()));
+        statsBox.appendChild(createKeyValue('Exit Status', '✓ Success (0)'));
 
-    stageContent.appendChild(statsBox);
-}
+        stageContent.appendChild(statsBox);
+    }
 
-// ============================================
-// ERROR RENDERING
-// ============================================
-function renderErrors(data) {
-    const stageContent = document.getElementById('stage-content');
+    // ============================================
+    // ERROR RENDERING
+    // ============================================
+    function renderErrors(data) {
+        const stageContent = document.getElementById('stage-content');
 
-    // Clear content
-    stageContent.innerHTML = '';
+        // Clear content
+        stageContent.innerHTML = '';
 
-    // Add error header
-    const header = createSectionHeader(
-        '❌ Compilation Failed',
-        'Errors were found during compilation'
-    );
-    stageContent.appendChild(header);
+        // Add error header
+        const header = createSectionHeader(
+            '❌ Compilation Failed',
+            'Errors were found during compilation'
+        );
+        stageContent.appendChild(header);
 
-    // Determine which stage failed
-    const failedStage = data.stage || 'unknown';
-    const stageNames = {
-        'lexical': 'Lexical Analysis',
-        'syntax': 'Syntax Analysis',
-        'semantic': 'Semantic Analysis',
-        'optimization': 'Optimization',
-        'codegen': 'Code Generation'
-    };
+        // Determine which stage failed
+        const failedStage = data.stage || 'unknown';
+        const stageNames = {
+            'lexical': 'Lexical Analysis',
+            'syntax': 'Syntax Analysis',
+            'semantic': 'Semantic Analysis',
+            'optimization': 'Optimization',
+            'codegen': 'Code Generation'
+        };
 
-    const stageName = stageNames[failedStage] || 'Unknown Stage';
+        const stageName = stageNames[failedStage] || 'Unknown Stage';
 
-    // Stage failure info
-    const stageInfo = document.createElement('div');
-    stageInfo.style.cssText = `
+        // Stage failure info
+        const stageInfo = document.createElement('div');
+        stageInfo.style.cssText = `
         background: rgba(239, 68, 68, 0.1);
         border-left: 4px solid var(--error);
         padding: 1rem;
@@ -957,18 +1082,18 @@ function renderErrors(data) {
         margin: 1rem 0;
     `;
 
-    const stageText = document.createElement('div');
-    stageText.innerHTML = `<strong>Failed at:</strong> ${stageName}`;
-    stageText.style.cssText = 'color: var(--error); font-size: 1rem;';
-    stageInfo.appendChild(stageText);
+        const stageText = document.createElement('div');
+        stageText.innerHTML = `<strong>Failed at:</strong> ${stageName}`;
+        stageText.style.cssText = 'color: var(--error); font-size: 1rem;';
+        stageInfo.appendChild(stageText);
 
-    stageContent.appendChild(stageInfo);
+        stageContent.appendChild(stageInfo);
 
-    // Error details
-    if (data.errors && data.errors.length > 0) {
-        data.errors.forEach((error, index) => {
-            const errorBox = document.createElement('div');
-            errorBox.style.cssText = `
+        // Error details
+        if (data.errors && data.errors.length > 0) {
+            data.errors.forEach((error, index) => {
+                const errorBox = document.createElement('div');
+                errorBox.style.cssText = `
                 background: var(--bg-secondary);
                 border: 2px solid var(--error);
                 border-radius: 0.5rem;
@@ -976,43 +1101,43 @@ function renderErrors(data) {
                 margin: 1rem 0;
             `;
 
-            const errorTitle = document.createElement('h4');
-            errorTitle.textContent = `Error ${index + 1}`;
-            errorTitle.style.cssText = 'color: var(--error); margin-bottom: 1rem; font-size: 1.125rem;';
-            errorBox.appendChild(errorTitle);
+                const errorTitle = document.createElement('h4');
+                errorTitle.textContent = `Error ${index + 1}`;
+                errorTitle.style.cssText = 'color: var(--error); margin-bottom: 1rem; font-size: 1.125rem;';
+                errorBox.appendChild(errorTitle);
 
-            // Error message
-            const message = document.createElement('div');
-            message.textContent = error.message || error.error || 'Unknown error';
-            message.style.cssText = 'color: var(--text-primary); font-size: 1rem; margin-bottom: 1rem; font-weight: 500;';
-            errorBox.appendChild(message);
+                // Error message
+                const message = document.createElement('div');
+                message.textContent = error.message || error.error || 'Unknown error';
+                message.style.cssText = 'color: var(--text-primary); font-size: 1rem; margin-bottom: 1rem; font-weight: 500;';
+                errorBox.appendChild(message);
 
-            // Location info
-            if (error.line !== undefined) {
-                const location = createKeyValue('Location', `Line ${error.line}${error.column ? `, Column ${error.column}` : ''}`);
-                errorBox.appendChild(location);
-            }
+                // Location info
+                if (error.line !== undefined) {
+                    const location = createKeyValue('Location', `Line ${error.line}${error.column ? `, Column ${error.column}` : ''}`);
+                    errorBox.appendChild(location);
+                }
 
-            // Error type
-            if (error.type) {
-                const errorType = createKeyValue('Type', error.type);
-                errorBox.appendChild(errorType);
-            }
+                // Error type
+                if (error.type) {
+                    const errorType = createKeyValue('Type', error.type);
+                    errorBox.appendChild(errorType);
+                }
 
-            stageContent.appendChild(errorBox);
-        });
-    } else {
-        // Generic error message if no specific errors provided
-        const genericError = createInfoBox(
-            data.error || 'An unknown compilation error occurred',
-            'error'
-        );
-        stageContent.appendChild(genericError);
-    }
+                stageContent.appendChild(errorBox);
+            });
+        } else {
+            // Generic error message if no specific errors provided
+            const genericError = createInfoBox(
+                data.error || 'An unknown compilation error occurred',
+                'error'
+            );
+            stageContent.appendChild(genericError);
+        }
 
-    // Help message
-    const helpBox = document.createElement('div');
-    helpBox.style.cssText = `
+        // Help message
+        const helpBox = document.createElement('div');
+        helpBox.style.cssText = `
         background: var(--bg-secondary);
         padding: 1rem;
         border-radius: 0.5rem;
@@ -1020,17 +1145,18 @@ function renderErrors(data) {
         border-left: 4px solid var(--info);
     `;
 
-    const helpTitle = document.createElement('h4');
-    helpTitle.textContent = '💡 How to Fix';
-    helpTitle.style.cssText = 'color: var(--info); margin-bottom: 0.5rem;';
-    helpBox.appendChild(helpTitle);
+        const helpTitle = document.createElement('h4');
+        helpTitle.textContent = '💡 How to Fix';
+        helpTitle.style.cssText = 'color: var(--info); margin-bottom: 0.5rem;';
+        helpBox.appendChild(helpTitle);
 
-    const helpText = document.createElement('p');
-    helpText.textContent = 'Review the error message above, check the indicated line and column in your code, and correct the syntax or semantic issue.';
-    helpText.style.cssText = 'color: var(--text-secondary); font-size: 0.875rem;';
-    helpBox.appendChild(helpText);
+        const helpText = document.createElement('p');
+        helpText.textContent = 'Review the error message above, check the indicated line and column in your code, and correct the syntax or semantic issue.';
+        helpText.style.cssText = 'color: var(--text-secondary); font-size: 0.875rem;';
+        helpBox.appendChild(helpText);
 
-    stageContent.appendChild(helpBox);
+        stageContent.appendChild(helpBox);
+    }
+
+    console.log('Stage Renderers loaded (Complete: All 6 Stages + Errors) ✓');
 }
-
-console.log('Stage Renderers loaded (Complete: All 6 Stages + Errors) ✓');
