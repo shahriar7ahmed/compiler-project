@@ -15,6 +15,8 @@ class BytecodeDebugger {
         this.isRunning = false;
         this.speed = 1000; // ms between instructions (slow)
         this.intervalId = null;
+        this.breakpoints = new Set(); // Phase 5.5.5
+        this.executionCycles = 0; // Phase 5.5.5
     }
 
     /**
@@ -120,8 +122,76 @@ class BytecodeDebugger {
         this.createBytecodeView();
         this.createStackVisualization();
         this.createVariableTable();
+        this.createStatsPanel(); // Phase 5.5.5
 
         console.log('✓ Bytecode debugger loaded with', this.bytecode.length, 'instructions');
+    }
+
+    /**
+     * Create execution statistics panel - Phase 5.5.5
+     */
+    createStatsPanel() {
+        const panel = document.createElement('div');
+        panel.style.cssText = `
+            background: var(--bg-primary);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 2px solid #6366f1;
+        `;
+
+        const title = document.createElement('h4');
+        title.textContent = '📊 Execution Stats';
+        title.style.cssText = `
+            color: var(--text-primary);
+            margin: 0 0 1rem 0;
+            font-size: 1rem;
+        `;
+        panel.appendChild(title);
+
+        const statsContainer = document.createElement('div');
+        statsContainer.id = 'stats-container';
+        statsContainer.style.cssText = `
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            font-size: 0.813rem;
+        `;
+
+        const stats = [
+            { label: 'Progress', id: 'stat-progress', value: '0%' },
+            { label: 'Cycles', id: 'stat-cycles', value: '0' },
+            { label: 'Breakpoints', id: 'stat-breakpoints', value: '0' }
+        ];
+
+        stats.forEach(stat => {
+            const row = document.createElement('div');
+            row.style.cssText = `
+                display: flex;
+                justify-content: space-between;
+                padding: 0.5rem;
+                background: var(--bg-secondary);
+                border-radius: 0.375rem;
+            `;
+
+            const label = document.createElement('span');
+            label.textContent = stat.label;
+            label.style.color = 'var(--text-secondary)';
+
+            const value = document.createElement('span');
+            value.id = stat.id;
+            value.textContent = stat.value;
+            value.style.cssText = `
+                color: #6366f1;
+                font-weight: 700;
+            `;
+
+            row.appendChild(label);
+            row.appendChild(value);
+            statsContainer.appendChild(row);
+        });
+
+        panel.appendChild(statsContainer);
+        this.rightPanel.appendChild(panel);
     }
 
     /**
@@ -355,11 +425,72 @@ class BytecodeDebugger {
                 }
             });
 
+            // Add breakpoint toggle on click - Phase 5.5.5
+            instrDiv.addEventListener('click', (e) => {
+                // Check if clicking on the line number area (left side)
+                const rect = instrDiv.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+
+                if (clickX < 60) { // Click on line number area
+                    this.toggleBreakpoint(index);
+                }
+            });
+
+            // Show breakpoint indicator if set - Phase 5.5.5
+            if (this.breakpoints.has(index)) {
+                const breakpointIcon = document.createElement('span');
+                breakpointIcon.textContent = '🔴';
+                breakpointIcon.style.cssText = `
+                    position: absolute;
+                    left: 0;
+                    font-size: 0.75rem;
+                `;
+                instrDiv.style.position = 'relative';
+                instrDiv.insertBefore(breakpointIcon, instrDiv.firstChild);
+            }
+
             instructionList.appendChild(instrDiv);
         });
 
         panel.appendChild(instructionList);
         this.leftPanel.appendChild(panel);
+    }
+
+    /**
+     * Toggle breakpoint - Phase 5.5.5
+     */
+    toggleBreakpoint(index) {
+        if (this.breakpoints.has(index)) {
+            this.breakpoints.delete(index);
+        } else {
+            this.breakpoints.add(index);
+        }
+
+        // Refresh the instruction to show/hide breakpoint
+        const instrList = document.getElementById('instruction-list');
+        if (instrList) {
+            const instr = instrList.querySelector(`div[data-index="${index}"]`);
+            if (instr) {
+                // Remove existing breakpoint icon
+                const existingIcon = instr.querySelector('span');
+                if (existingIcon && existingIcon.textContent === '🔴') {
+                    existingIcon.remove();
+                }
+
+                // Add new icon if breakpoint is set
+                if (this.breakpoints.has(index)) {
+                    const breakpointIcon = document.createElement('span');
+                    breakpointIcon.textContent = '🔴';
+                    breakpointIcon.style.cssText = `
+                        position: absolute;
+                        left: 0;
+                        font-size: 0.75rem;
+                    `;
+                    instr.style.position = 'relative';
+                    instr.insertBefore(breakpointIcon, instr.firstChild);
+                }
+            }
+        }
     }
 
     /**
@@ -509,7 +640,7 @@ class BytecodeDebugger {
     }
 
     /**
-     * Get execution statistics - Phase 5.5.4
+     * Get execution statistics - Phase 5.5.4, updated 5.5.5
      */
     getExecutionStats() {
         return {
@@ -519,7 +650,8 @@ class BytecodeDebugger {
                 ((this.currentInstruction + 1) / this.bytecode.length * 100).toFixed(1) : 0,
             stackSize: this.stack.length,
             variableCount: Object.keys(this.variables).length,
-            historyDepth: this.executionHistory.length
+            historyDepth: this.executionHistory.length,
+            cycles: this.executionCycles // Phase 5.5.5
         };
     }
 
@@ -530,6 +662,21 @@ class BytecodeDebugger {
         this.updateStackView();
         this.updateVariableTable();
         this.updateInstructionHighlight();
+    }
+
+    /**
+     * Update execution statistics - Phase 5.5.5
+     */
+    updateStats() {
+        const stats = this.getExecutionStats();
+
+        const progressEl = document.getElementById('stat-progress');
+        const cyclesEl = document.getElementById('stat-cycles');
+        const breakpointsEl = document.getElementById('stat-breakpoints');
+
+        if (progressEl) progressEl.textContent = `${stats.progress}%`;
+        if (cyclesEl) cyclesEl.textContent = stats.cycles;
+        if (breakpointsEl) breakpointsEl.textContent = this.breakpoints.size;
     }
 
     /**
@@ -789,7 +936,7 @@ class BytecodeDebugger {
     }
 
     /**
-     * Execute single instruction - Phase 5.5.2
+     * Execute single instruction - Phase 5.5.2, updated 5.5.5
      */
     executeInstruction() {
         if (this.currentInstruction >= this.bytecode.length - 1) {
@@ -799,7 +946,17 @@ class BytecodeDebugger {
         }
 
         this.currentInstruction++;
+
+        // Check for breakpoint - Phase 5.5.5
+        if (this.breakpoints.has(this.currentInstruction)) {
+            this.pause();
+            console.log('Breakpoint hit at instruction', this.currentInstruction);
+            this.updateUI();
+            return false;
+        }
+
         const instr = this.bytecode[this.currentInstruction];
+        this.executionCycles++; // Phase 5.5.5
 
         // Save state for history
         this.executionHistory.push({
@@ -885,6 +1042,7 @@ class BytecodeDebugger {
             }
 
             this.updateUI();
+            this.updateStats(); // Phase 5.5.5
             return true;
         } catch (error) {
             console.error('Execution error:', error.message);
