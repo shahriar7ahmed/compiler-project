@@ -172,6 +172,56 @@ class ASTVisualizer {
                 d3.select(this).style('background', '#4a5568');
             })
             .on('click', () => this.resetZoom());
+
+        // Divider - Phase 5.3.4
+        controls.append('div')
+            .style('height', '2px')
+            .style('background', '#2d3748')
+            .style('margin', '4px 0');
+
+        // Expand all button - Phase 5.3.4
+        controls.append('button')
+            .attr('class', 'collapse-btn expand-all')
+            .html('📂')
+            .attr('title', 'Expand All')
+            .style('width', '40px')
+            .style('height', '40px')
+            .style('background', '#4a5568')
+            .style('color', 'white')
+            .style('border', 'none')
+            .style('border-radius', '8px')
+            .style('cursor', 'pointer')
+            .style('font-size', '18px')
+            .style('transition', 'all 0.2s')
+            .on('mouseover', function () {
+                d3.select(this).style('background', '#f59e0b');
+            })
+            .on('mouseout', function () {
+                d3.select(this).style('background', '#4a5568');
+            })
+            .on('click', () => this.expandAll());
+
+        // Collapse all button - Phase 5.3.4
+        controls.append('button')
+            .attr('class', 'collapse-btn collapse-all')
+            .html('📁')
+            .attr('title', 'Collapse All')
+            .style('width', '40px')
+            .style('height', '40px')
+            .style('background', '#4a5568')
+            .style('color', 'white')
+            .style('border', 'none')
+            .style('border-radius', '8px')
+            .style('cursor', 'pointer')
+            .style('font-size', '18px')
+            .style('transition', 'all 0.2s')
+            .on('mouseover', function () {
+                d3.select(this).style('background', '#f59e0b');
+            })
+            .on('mouseout', function () {
+                d3.select(this).style('background', '#4a5568');
+            })
+            .on('click', () => this.collapseAll());
     }
 
     /**
@@ -446,7 +496,7 @@ class ASTVisualizer {
                     .style('filter', 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4)) drop-shadow(0 0 12px ' + color + '55)');
             }
 
-            // Add hover effect
+            // Add hover and click effects - Phase 5.3.4 updated
             node.on('mouseenter', function () {
                 d3.select(this).select('circle, rect, path, ellipse')
                     .transition()
@@ -460,8 +510,32 @@ class ASTVisualizer {
                         .duration(200)
                         .attr('stroke-width', 2.5)
                         .style('filter', 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4)) drop-shadow(0 0 12px ' + color + '55)');
+                })
+                .on('click', (event, d) => {
+                    event.stopPropagation();
+                    this.toggleNode(d);
                 });
         }.bind(this));
+
+        // Add collapse indicator (+/-) for nodes with children - Phase 5.3.4
+        nodes.each(function (d) {
+            if (d.children || d._children) {
+                const node = d3.select(this);
+                const hasChildren = d.children && d.children.length > 0;
+
+                node.append('text')
+                    .attr('class', 'collapse-indicator')
+                    .attr('x', 0)
+                    .attr('y', -35)
+                    .attr('text-anchor', 'middle')
+                    .attr('fill', '#ffffff')
+                    .attr('font-size', '16px')
+                    .attr('font-weight', 'bold')
+                    .attr('pointer-events', 'none')
+                    .style('text-shadow', '0 1px 3px rgba(0, 0, 0, 0.8)')
+                    .text(hasChildren ? '−' : '+');
+            }
+        });
 
         // Add labels with text wrapping - Phase 5.3.2
         nodes.append('text')
@@ -547,6 +621,132 @@ class ASTVisualizer {
             .call(this.zoom.transform, transform);
 
         this.currentZoom = scale;
+    }
+
+    /**
+     * Toggle node collapse/expand - Phase 5.3.4
+     */
+    toggleNode(d) {
+        if (d.children) {
+            d._children = d.children;
+            d.children = null;
+        } else if (d._children) {
+            d.children = d._children;
+            d._children = null;
+        }
+        this.update(d);
+    }
+
+    /**
+     * Expand all nodes - Phase 5.3.4
+     */
+    expandAll() {
+        if (!this.root) return;
+
+        this.root.each(d => {
+            if (d._children) {
+                d.children = d._children;
+                d._children = null;
+            }
+        });
+
+        this.update(this.root);
+    }
+
+    /**
+     * Collapse all nodes - Phase 5.3.4
+     */
+    collapseAll() {
+        if (!this.root) return;
+
+        this.root.each(d => {
+            if (d.children && d.parent) { // Don't collapse root
+                d._children = d.children;
+                d.children = null;
+            }
+        });
+
+        this.update(this.root);
+    }
+
+    /**
+     * Update tree with animation - Phase 5.3.4
+     */
+    update(source) {
+        const duration = 400;
+
+        // Re-compute tree layout
+        const treeData = this.tree(this.root);
+        const nodes = treeData.descendants();
+        const links = treeData.links();
+
+        // Update nodes
+        const node = this.g.selectAll('.node')
+            .data(nodes, d => d.data.name + d.depth);
+
+        // Remove exiting nodes
+        node.exit()
+            .transition()
+            .duration(duration)
+            .attr('transform', d => `translate(${source.x},${source.y})`)
+            .style('opacity', 0)
+            .remove();
+
+        // Update existing and add new nodes
+        const nodeEnter = node.enter()
+            .append('g')
+            .attr('class', 'node')
+            .attr('transform', d => `translate(${source.x},${source.y})`)
+            .style('opacity', 0);
+
+        // Merge and transition
+        const nodeUpdate = nodeEnter.merge(node);
+
+        nodeUpdate.transition()
+            .duration(duration)
+            .attr('transform', d => `translate(${d.x},${d.y})`)
+            .style('opacity', 1);
+
+        // Update links
+        const link = this.g.selectAll('.link')
+            .data(links, d => d.target.data.name + d.target.depth);
+
+        link.exit()
+            .transition()
+            .duration(duration)
+            .style('opacity', 0)
+            .remove();
+
+        const linkEnter = link.enter()
+            .insert('path', 'g')
+            .attr('class', 'link')
+            .attr('d', d => {
+                const o = { x: source.x, y: source.y };
+                return `M${o.x},${o.y} C${o.x},${o.y} ${o.x},${o.y} ${o.x},${o.y}`;
+            })
+            .attr('fill', 'none')
+            .style('opacity', 0);
+
+        linkEnter.merge(link)
+            .transition()
+            .duration(duration)
+            .attr('d', d => {
+                const sourceX = d.source.x;
+                const sourceY = d.source.y;
+                const targetX = d.target.x;
+                const targetY = d.target.y;
+                return `M${sourceX},${sourceY} C${sourceX},${(sourceY + targetY) / 2} ${targetX},${(sourceY + targetY) / 2} ${targetX},${targetY}`;
+            })
+            .attr('stroke', d => {
+                const color = this.colors[d.target.data.type] || this.colors.default;
+                return color + '44';
+            })
+            .attr('stroke-width', 2.5)
+            .attr('stroke-opacity', 0.6)
+            .style('opacity', 1);
+
+        // Re-render nodes with proper styling (simplified version for update)
+        this.render(this.root.data.children.map(child => child.data.data));
     }
 
     /**
