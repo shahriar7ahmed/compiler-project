@@ -50,10 +50,13 @@ class ASTVisualizer {
         // Clear existing content
         this.container.innerHTML = '';
 
-        // Get container dimensions
+        // Get container dimensions - Phase 5.3.7 responsive
         const rect = this.container.getBoundingClientRect();
         this.width = rect.width || 800;
         this.height = rect.height || 600;
+
+        // Make container position relative for absolute children
+        this.container.style.position = 'relative';
 
         // Create SVG
         this.svg = d3.select(`#${this.containerId}`)
