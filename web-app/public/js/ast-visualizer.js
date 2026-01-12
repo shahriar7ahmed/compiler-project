@@ -74,7 +74,119 @@ class ASTVisualizer {
         // Add zoom controls - Phase 5.3.3
         this.addZoomControls();
 
+        // Setup tooltip - Phase 5.3.5
+        this.setupTooltip();
+
         return true;
+    }
+
+    /**
+     * Setup tooltip component - Phase 5.3.5
+     */
+    setupTooltip() {
+        this.tooltip = d3.select(`#${this.containerId}`)
+            .append('div')
+            .attr('class', 'ast-tooltip')
+            .style('position', 'absolute')
+            .style('background', '#2d3748')
+            .style('color', '#ffffff')
+            .style('padding', '12px 16px')
+            .style('border-radius', '8px')
+            .style('font-size', '13px')
+            .style('pointer-events', 'none')
+            .style('opacity', 0)
+            .style('box-shadow', '0 10px 25px rgba(0, 0, 0, 0.5)')
+            .style('border', '1px solid #4a5568')
+            .style('max-width', '300px')
+            .style('z-index', '1000')
+            .style('transition', 'opacity 0.2s ease');
+    }
+
+    /**
+     * Show tooltip with node details - Phase 5.3.5
+     */
+    showTooltip(event, d) {
+        const node = d.data;
+        const nodeData = node.data || {};
+
+        let content = `<div style="font-weight: 700; margin-bottom: 8px; color: #60a5fa; font-size: 14px;">${node.type}</div>`;
+        content += `<div style="margin-bottom: 4px;"><strong>Name:</strong> ${node.name}</div>`;
+
+        // Add type-specific information
+        if (nodeData.identifier) {
+            content += `<div style="margin-bottom: 4px;"><strong>Identifier:</strong> ${nodeData.identifier}</div>`;
+        }
+        if (nodeData.value !== undefined) {
+            content += `<div style="margin-bottom: 4px;"><strong>Value:</strong> ${nodeData.value}</div>`;
+        }
+        if (nodeData.operator) {
+            content += `<div style="margin-bottom: 4px;"><strong>Operator:</strong> ${nodeData.operator}</div>`;
+        }
+        if (nodeData.variable) {
+            content += `<div style="margin-bottom: 4px;"><strong>Variable:</strong> ${nodeData.variable}</div>`;
+        }
+
+        // Add location if available
+        if (nodeData.line !== undefined) {
+            content += `<div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #4a5568; color: #9ca3af; font-size: 12px;">`;
+            content += `📍 Line ${nodeData.line}`;
+            if (nodeData.column !== undefined) {
+                content += `:${nodeData.column}`;
+            }
+            content += `</div>`;
+        }
+
+        // Add children count
+        const childCount = (d.children ? d.children.length : (d._children ? d._children.length : 0));
+        if (childCount > 0) {
+            content += `<div style="margin-top: 4px; color: #9ca3af; font-size: 12px;">👶 ${childCount} child${childCount > 1 ? 'ren' : ''}</div>`;
+        }
+
+        this.tooltip.html(content);
+
+        // Position tooltip with viewport awareness
+        this.positionTooltip(event);
+
+        // Show with fade-in
+        this.tooltip.style('opacity', 1);
+    }
+
+    /**
+     * Position tooltip to stay within viewport - Phase 5.3.5
+     */
+    positionTooltip(event) {
+        const tooltipNode = this.tooltip.node();
+        const tooltipRect = tooltipNode.getBoundingClientRect();
+        const containerRect = this.container.getBoundingClientRect();
+
+        let left = event.pageX + 15;
+        let top = event.pageY - 10;
+
+        // Adjust horizontal position if tooltip goes off right edge
+        if (left + tooltipRect.width > window.innerWidth - 20) {
+            left = event.pageX - tooltipRect.width - 15;
+        }
+
+        // Adjust vertical position if tooltip goes off bottom
+        if (top + tooltipRect.height > window.innerHeight - 20) {
+            top = event.pageY - tooltipRect.height - 10;
+        }
+
+        // Ensure tooltip doesn't go off top
+        if (top < 20) {
+            top = 20;
+        }
+
+        this.tooltip
+            .style('left', `${left}px`)
+            .style('top', `${top}px`);
+    }
+
+    /**
+     * Hide tooltip - Phase 5.3.5
+     */
+    hideTooltip() {
+        this.tooltip.style('opacity', 0);
     }
 
     /**
