@@ -149,6 +149,11 @@ async function handleCompile() {
         showLoading(true);
         updateCompileButton(false);
 
+        // Show compilation progress - Phase 5.2.3
+        if (typeof compilationProgress !== 'undefined') {
+            compilationProgress.simulateProgress(1500);
+        }
+
         console.log('Compiling code...');
         compilationData = await compileCode(sourceCode);
 
