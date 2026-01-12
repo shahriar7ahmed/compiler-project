@@ -29,6 +29,9 @@ class BytecodeDebugger {
         // Clear existing content
         this.container.innerHTML = '';
 
+        // Add CSS animations - Phase 5.5.3
+        this.addAnimations();
+
         // Create main layout
         this.container.style.cssText = `
             background: var(--bg-secondary);
@@ -60,6 +63,44 @@ class BytecodeDebugger {
         this.container.appendChild(this.rightPanel);
 
         return true;
+    }
+
+    /**
+     * Add CSS animations - Phase 5.5.3
+     */
+    addAnimations() {
+        // Check if style already exists
+        if (document.getElementById('bytecode-debugger-animations')) return;
+
+        const style = document.createElement('style');
+        style.id = 'bytecode-debugger-animations';
+        style.textContent = `
+            @keyframes pulse {
+                0%, 100% { opacity: 1; transform: scale(1); }
+                50% { opacity: 0.7; transform: scale(1.2); }
+            }
+            
+            @keyframes slideIn {
+                from { opacity: 0; transform: translateX(-10px); }
+                to { opacity: 1; transform: translateX(0); }
+            }
+            
+            @keyframes stackPush {
+                from { opacity: 0; transform: translateY(20px) scale(0.8); }
+                to { opacity: 1; transform: translateY(0) scale(1); }
+            }
+            
+            @keyframes stackPop {
+                from { opacity: 1; transform: scale(1); }
+                to { opacity: 0; transform: scale(0.8) translateY(-20px); }
+            }
+            
+            @keyframes varChange {
+                0% { background: rgba(16, 185, 129, 0.3); }
+                100% { background: var(--bg-tertiary); }
+            }
+        `;
+        document.head.appendChild(style);
     }
 
     /**
@@ -591,21 +632,88 @@ class BytecodeDebugger {
     }
 
     /**
-     * Update instruction highlight - Phase 5.5.1
+     * Update instruction highlight - Phase 5.5.3 enhanced
      */
     updateInstructionHighlight() {
-        const instructions = document.querySelectorAll('#instruction-list > div');
+        const instructionList = document.getElementById('instruction-list');
+        const instructions = instructionList ? instructionList.querySelectorAll('div[data-index]') : [];
 
         instructions.forEach((instr, index) => {
-            if (index === this.currentInstruction) {
-                instr.style.background = 'rgba(99, 102, 241, 0.2)';
+            const dataIndex = parseInt(instr.dataset.index);
+
+            // Remove all previous styling
+            instr.style.background = 'transparent';
+            instr.style.borderLeft = 'none';
+            instr.style.fontWeight = '400';
+            instr.style.transform = 'scale(1)';
+            instr.style.boxShadow = 'none';
+            instr.style.opacity = '1'; // Reset opacity
+            instr.style.transition = 'none'; // Reset transition
+
+            // Remove instruction pointer if exists
+            const existingPointer = instr.querySelector('.instruction-pointer');
+            if (existingPointer) {
+                existingPointer.remove();
+            }
+
+            // Current instruction - Phase 5.5.3
+            if (dataIndex === this.currentInstruction) {
+                instr.style.background = 'linear-gradient(90deg, rgba(99, 102, 241, 0.3), rgba(99, 102, 241, 0.1))';
                 instr.style.borderLeft = '4px solid var(--accent-primary)';
                 instr.style.fontWeight = '700';
-            } else {
-                instr.style.background = 'transparent';
-                instr.style.borderLeft = 'none';
-                instr.style.fontWeight = '400';
+                instr.style.transform = 'scale(1.02)';
+                instr.style.boxShadow = '0 2px 8px rgba(99, 102, 241, 0.3)';
+                instr.style.transition = 'all 0.3s ease';
+
+                // Add instruction pointer indicator - Phase 5.5.3
+                const pointer = document.createElement('span');
+                pointer.className = 'instruction-pointer';
+                pointer.textContent = '▶';
+                pointer.style.cssText = `
+                    position: absolute;
+                    left: -20px;
+                    color: var(--accent-primary);
+                    font-size: 1rem;
+                    animation: pulse 1s infinite;
+                `;
+                instr.style.position = 'relative';
+                instr.insertBefore(pointer, instr.firstChild);
+
+                // Scroll to current instruction - Phase 5.5.3
+                this.scrollToInstruction(dataIndex);
             }
+            // Next instruction preview - Phase 5.5.3
+            else if (dataIndex === this.currentInstruction + 1) {
+                instr.style.background = 'rgba(99, 102, 241, 0.05)';
+                instr.style.borderLeft = '2px solid rgba(99, 102, 241, 0.3)';
+            }
+            // Previous instruction - Phase 5.5.3
+            else if (dataIndex === this.currentInstruction - 1) {
+                instr.style.background = 'rgba(107, 114, 128, 0.05)';
+                instr.style.borderLeft = '2px solid rgba(107, 114, 128, 0.3)';
+            }
+            // Executed instructions - Phase 5.5.3
+            else if (dataIndex < this.currentInstruction) {
+                instr.style.opacity = '0.6';
+            }
+        });
+    }
+
+    /**
+     * Scroll to current instruction - Phase 5.5.3
+     */
+    scrollToInstruction(index) {
+        const instructionList = document.getElementById('instruction-list');
+        if (!instructionList) return;
+
+        const instruction = instructionList.querySelector(`div[data-index="${index}"]`);
+        if (!instruction) return;
+
+        // Smooth scroll with center alignment
+        instruction.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+            inline: 'nearest'
         });
     }
 
