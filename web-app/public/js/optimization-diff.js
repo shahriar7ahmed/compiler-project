@@ -545,9 +545,117 @@ class OptimizationDiff {
         // Add diff legend - Phase 5.4.2
         const legend = this.createDiffLegend();
 
+        // Add filter controls - Phase 5.4.4
+        const filterControls = this.createFilterControls();
+
         header.appendChild(titleSection);
         header.appendChild(legend);
+        header.appendChild(filterControls);
         this.container.appendChild(header);
+    }
+
+    /**
+     * Create filter controls - Phase 5.4.4
+     */
+    createFilterControls() {
+        const controls = document.createElement('div');
+        controls.style.cssText = `
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        `;
+
+        const filterLabel = document.createElement('span');
+        filterLabel.textContent = 'Show:';
+        filterLabel.style.cssText = `
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 600;
+        `;
+        controls.appendChild(filterLabel);
+
+        const filters = [
+            { label: 'All', value: 'all', active: true },
+            { label: '🗑️ Eliminated', value: 'eliminated' },
+            { label: '✨ Optimized', value: 'optimized' },
+            { label: '➖ Unchanged', value: 'unchanged' }
+        ];
+
+        filters.forEach(filter => {
+            const btn = document.createElement('button');
+            btn.textContent = filter.label;
+            btn.dataset.filter = filter.value;
+            btn.style.cssText = `
+                padding: 0.375rem 0.75rem;
+                border: none;
+                border-radius: 0.375rem;
+                font-size: 0.875rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s;
+                background: ${filter.active ? 'var(--accent-primary)' : 'var(--bg-tertiary)'};
+                color: ${filter.active ? 'white' : 'var(--text-secondary)'};
+            `;
+
+            btn.addEventListener('click', () => {
+                // Update active state
+                controls.querySelectorAll('button').forEach(b => {
+                    b.style.background = 'var(--bg-tertiary)';
+                    b.style.color = 'var(--text-secondary)';
+                });
+                btn.style.background = 'var(--accent-primary)';
+                btn.style.color = 'white';
+
+                // Apply filter
+                this.applyFilter(filter.value);
+            });
+
+            btn.addEventListener('mouseenter', () => {
+                if (btn.style.background !== 'var(--accent-primary)') {
+                    btn.style.background = 'var(--bg-secondary)';
+                }
+            });
+
+            btn.addEventListener('mouseleave', () => {
+                if (btn.style.background !== 'var(--accent-primary)') {
+                    btn.style.background = 'var(--bg-tertiary)';
+                }
+            });
+
+            controls.appendChild(btn);
+        });
+
+        return controls;
+    }
+
+    /**
+     * Apply filter to diff view - Phase 5.4.4
+     */
+    applyFilter(filterType) {
+        const beforeView = document.getElementById('before-tree-view');
+        if (!beforeView) return;
+
+        const nodes = beforeView.querySelectorAll('div[style*="padding-left"]');
+
+        nodes.forEach((node, idx) => {
+            const isEliminated = this.diffResult.eliminated.includes(idx);
+            const isOptimized = this.diffResult.optimized.includes(idx);
+            const isUnchanged = this.diffResult.unchanged.includes(idx);
+
+            let shouldShow = true;
+
+            if (filterType === 'eliminated') {
+                shouldShow = isEliminated;
+            } else if (filterType === 'optimized') {
+                shouldShow = isOptimized;
+            } else if (filterType === 'unchanged') {
+                shouldShow = isUnchanged;
+            }
+
+            node.style.display = shouldShow ? 'block' : 'none';
+            node.style.opacity = shouldShow ? '1' : '0';
+            node.style.transition = 'opacity 0.3s ease';
+        });
     }
 
     /**
@@ -668,7 +776,7 @@ class OptimizationDiff {
     }
 
     /**
-     * Render before AST - Phase 5.4.1
+     * Render before AST - Phase 5.4.1, updated 5.4.4
      */
     renderBeforeAST() {
         if (!this.beforeAST || this.beforeAST.length === 0) {
@@ -677,6 +785,7 @@ class OptimizationDiff {
         }
 
         const treeView = document.createElement('div');
+        treeView.id = 'before-tree-view';
         treeView.style.cssText = `
             font-family: 'Fira Code', 'Consolas', monospace;
             font-size: 0.875rem;
@@ -686,6 +795,16 @@ class OptimizationDiff {
             max-height: 600px;
             overflow-y: auto;
         `;
+
+        // Add sync scroll - Phase 5.4.4
+        treeView.addEventListener('scroll', () => {
+            const afterView = document.getElementById('after-tree-view');
+            if (afterView && !afterView.dataset.scrolling) {
+                treeView.dataset.scrolling = 'true';
+                afterView.scrollTop = treeView.scrollTop;
+                setTimeout(() => delete treeView.dataset.scrolling, 50);
+            }
+        });
 
         this.beforeAST.forEach((node, index) => {
             this.renderASTNode(node, 0, treeView, 'before');
@@ -695,7 +814,7 @@ class OptimizationDiff {
     }
 
     /**
-     * Render after AST - Phase 5.4.1
+     * Render after AST - Phase 5.4.1, updated 5.4.4
      */
     renderAfterAST() {
         if (!this.afterAST || this.afterAST.length === 0) {
@@ -704,6 +823,7 @@ class OptimizationDiff {
         }
 
         const treeView = document.createElement('div');
+        treeView.id = 'after-tree-view';
         treeView.style.cssText = `
             font-family: 'Fira Code', 'Consolas', monospace;
             font-size: 0.875rem;
@@ -713,6 +833,16 @@ class OptimizationDiff {
             max-height: 600px;
             overflow-y: auto;
         `;
+
+        // Add sync scroll - Phase 5.4.4
+        treeView.addEventListener('scroll', () => {
+            const beforeView = document.getElementById('before-tree-view');
+            if (beforeView && !beforeView.dataset.scrolling) {
+                treeView.dataset.scrolling = 'true';
+                beforeView.scrollTop = treeView.scrollTop;
+                setTimeout(() => delete treeView.dataset.scrolling, 50);
+            }
+        });
 
         this.afterAST.forEach((node, index) => {
             this.renderASTNode(node, 0, treeView, 'after');
@@ -743,6 +873,43 @@ class OptimizationDiff {
         nodeDiv.addEventListener('mouseleave', () => {
             nodeDiv.style.background = 'transparent';
         });
+
+        // Add click handler for highlighting - Phase 5.4.4
+        nodeDiv.addEventListener('click', (e) => {
+            e.stopPropagation();
+
+            // Remove previous highlights
+            document.querySelectorAll('.node-highlighted').forEach(n => {
+                n.classList.remove('node-highlighted');
+                n.style.outline = 'none';
+            });
+
+            // Highlight this node
+            nodeDiv.classList.add('node-highlighted');
+            nodeDiv.style.outline = '2px solid var(--accent-primary)';
+            nodeDiv.style.outlineOffset = '2px';
+
+            // Try to find and highlight corresponding node in other view
+            const flatIdx = this.getNodeIndex(node);
+            if (this.diffResult.matches.has(flatIdx)) {
+                const matchIdx = this.diffResult.matches.get(flatIdx);
+                const otherView = context === 'before' ?
+                    document.getElementById('after-tree-view') :
+                    document.getElementById('before-tree-view');
+
+                if (otherView) {
+                    const matchingNode = otherView.querySelectorAll('div[style*="padding-left"]')[matchIdx];
+                    if (matchingNode) {
+                        matchingNode.style.outline = '2px dashed var(--success)';
+                        matchingNode.style.outlineOffset = '2px';
+                        matchingNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+            }
+        });
+
+        // Add detailed tooltip on hover - Phase 5.4.4
+        nodeDiv.title = `Type: ${node.type}${node.identifier ? '\nIdentifier: ' + node.identifier : ''}${node.value !== undefined ? '\nValue: ' + node.value : ''}${node.operator ? '\nOperator: ' + node.operator : ''}`;
 
         const nodeType = document.createElement('span');
         nodeType.textContent = node.type || 'Unknown';
