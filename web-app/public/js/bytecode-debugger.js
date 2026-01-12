@@ -150,12 +150,25 @@ class BytecodeDebugger {
                 button.style.boxShadow = 'none';
             });
 
+            // Add click handlers - Phase 5.5.2
+            if (btn.id === 'play-btn') {
+                button.addEventListener('click', () => this.play());
+            } else if (btn.id === 'pause-btn') {
+                button.addEventListener('click', () => this.pause());
+            } else if (btn.id === 'stop-btn') {
+                button.addEventListener('click', () => this.stop());
+            } else if (btn.id === 'step-btn') {
+                button.addEventListener('click', () => this.stepForward());
+            } else if (btn.id === 'reset-btn') {
+                button.addEventListener('click', () => this.reset());
+            }
+
             btnContainer.appendChild(button);
         });
 
         panel.appendChild(btnContainer);
 
-        // Speed control (will be implemented in Phase 5.5.2)
+        // Speed control - Phase 5.5.2
         const speedControl = document.createElement('div');
         speedControl.style.cssText = `
             margin-top: 1rem;
@@ -171,8 +184,48 @@ class BytecodeDebugger {
         `;
         speedLabel.innerHTML = '<strong>Speed:</strong> <span id="speed-value">Normal</span>';
 
+        const speedButtons = document.createElement('div');
+        speedButtons.style.cssText = `
+            display: flex;
+            gap: 0.5rem;
+        `;
+
+        ['slow', 'normal', 'fast'].forEach(speed => {
+            const btn = document.createElement('button');
+            btn.textContent = speed.charAt(0).toUpperCase() + speed.slice(1);
+            btn.style.cssText = `
+                flex: 1;
+                padding: 0.5rem;
+                background: ${speed === 'normal' ? 'var(--accent-primary)' : 'var(--bg-tertiary)'};
+                color: ${speed === 'normal' ? 'white' : 'var(--text-secondary)'};
+                border: none;
+                border-radius: 0.375rem;
+                cursor: pointer;
+                font-size: 0.813rem;
+                transition: all 0.2s;
+            `;
+
+            btn.addEventListener('click', () => {
+                // Update active state
+                speedButtons.querySelectorAll('button').forEach(b => {
+                    b.style.background = 'var(--bg-tertiary)';
+                    b.style.color = 'var(--text-secondary)';
+                });
+                btn.style.background = 'var(--accent-primary)';
+                btn.style.color = 'white';
+
+                this.setSpeed(speed);
+            });
+
+            speedButtons.appendChild(btn);
+        });
+
         speedControl.appendChild(speedLabel);
+        speedControl.appendChild(speedButtons);
         panel.appendChild(speedControl);
+
+        // Initialize button states
+        this.updateButtonStates();
 
         this.leftPanel.appendChild(panel);
     }
@@ -552,6 +605,236 @@ class BytecodeDebugger {
                 instr.style.background = 'transparent';
                 instr.style.borderLeft = 'none';
                 instr.style.fontWeight = '400';
+            }
+        });
+    }
+
+    /**
+     * Execute single instruction - Phase 5.5.2
+     */
+    executeInstruction() {
+        if (this.currentInstruction >= this.bytecode.length - 1) {
+            this.stop();
+            console.log('Program execution completed');
+            return false;
+        }
+
+        this.currentInstruction++;
+        const instr = this.bytecode[this.currentInstruction];
+
+        // Save state for history
+        this.executionHistory.push({
+            instruction: this.currentInstruction,
+            stack: [...this.stack],
+            variables: { ...this.variables }
+        });
+
+        // Execute instruction
+        try {
+            switch (instr.opcode) {
+                case 'LOAD_CONST':
+                    this.stack.push(instr.operand);
+                    break;
+
+                case 'LOAD_VAR':
+                    if (this.variables[instr.variable] !== undefined) {
+                        this.stack.push(this.variables[instr.variable]);
+                    } else {
+                        throw new Error(`Variable '${instr.variable}' not defined`);
+                    }
+                    break;
+
+                case 'STORE_VAR':
+                    if (this.stack.length === 0) {
+                        throw new Error('Stack underflow');
+                    }
+                    this.variables[instr.variable] = this.stack.pop();
+                    break;
+
+                case 'ADD':
+                    if (this.stack.length < 2) {
+                        throw new Error('Stack underflow');
+                    }
+                    const b = this.stack.pop();
+                    const a = this.stack.pop();
+                    this.stack.push(a + b);
+                    break;
+
+                case 'SUB':
+                    if (this.stack.length < 2) {
+                        throw new Error('Stack underflow');
+                    }
+                    const sb = this.stack.pop();
+                    const sa = this.stack.pop();
+                    this.stack.push(sa - sb);
+                    break;
+
+                case 'MUL':
+                    if (this.stack.length < 2) {
+                        throw new Error('Stack underflow');
+                    }
+                    const mb = this.stack.pop();
+                    const ma = this.stack.pop();
+                    this.stack.push(ma * mb);
+                    break;
+
+                case 'DIV':
+                    if (this.stack.length < 2) {
+                        throw new Error('Stack underflow');
+                    }
+                    const db = this.stack.pop();
+                    const da = this.stack.pop();
+                    if (db === 0) {
+                        throw new Error('Division by zero');
+                    }
+                    this.stack.push(Math.floor(da / db));
+                    break;
+
+                case 'PRINT':
+                    // For now, just log to console
+                    if (this.stack.length > 0) {
+                        console.log('OUTPUT:', this.stack[this.stack.length - 1]);
+                    }
+                    break;
+
+                case 'HALT':
+                    this.stop();
+                    return false;
+
+                default:
+                    console.warn('Unknown opcode:', instr.opcode);
+            }
+
+            this.updateUI();
+            return true;
+        } catch (error) {
+            console.error('Execution error:', error.message);
+            this.stop();
+            return false;
+        }
+    }
+
+    /**
+     * Play - auto-execute instructions - Phase 5.5.2
+     */
+    play() {
+        if (this.isRunning) return;
+
+        this.isRunning = true;
+        this.updateButtonStates();
+
+        this.intervalId = setInterval(() => {
+            const canContinue = this.executeInstruction();
+            if (!canContinue) {
+                this.stop();
+            }
+        }, this.speed);
+    }
+
+    /**
+     * Pause execution - Phase 5.5.2
+     */
+    pause() {
+        this.isRunning = false;
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+            this.intervalId = null;
+        }
+        this.updateButtonStates();
+    }
+
+    /**
+     * Stop and reset - Phase 5.5.2
+     */
+    stop() {
+        this.pause();
+        this.updateButtonStates();
+    }
+
+    /**
+     * Step forward (single instruction) - Phase 5.5.2
+     */
+    stepForward() {
+        if (this.isRunning) {
+            this.pause();
+        }
+        this.executeInstruction();
+    }
+
+    /**
+     * Step backward (undo last instruction) - Phase 5.5.2
+     */
+    stepBackward() {
+        if (this.isRunning) {
+            this.pause();
+        }
+
+        if (this.executionHistory.length === 0) {
+            console.log('Cannot step back - at beginning');
+            return;
+        }
+
+        const prevState = this.executionHistory.pop();
+        this.currentInstruction = prevState.instruction - 1;
+        this.stack = prevState.stack;
+        this.variables = prevState.variables;
+
+        this.updateUI();
+    }
+
+    /**
+     * Set execution speed - Phase 5.5.2
+     */
+    setSpeed(speedName) {
+        const speeds = {
+            'slow': 1000,
+            'normal': 500,
+            'fast': 100
+        };
+
+        this.speed = speeds[speedName] || 500;
+
+        // Update label
+        const speedLabel = document.getElementById('speed-value');
+        if (speedLabel) {
+            speedLabel.textContent = speedName.charAt(0).toUpperCase() + speedName.slice(1);
+        }
+
+        // If currently playing, restart with new speed
+        if (this.isRunning) {
+            this.pause();
+            this.play();
+        }
+    }
+
+    /**
+     * Update button states - Phase 5.5.2
+     */
+    updateButtonStates() {
+        const playBtn = document.getElementById('play-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const stepBtn = document.getElementById('step-btn');
+        const resetBtn = document.getElementById('reset-btn');
+
+        if (this.isRunning) {
+            if (playBtn) playBtn.disabled = true;
+            if (pauseBtn) pauseBtn.disabled = false;
+            if (stepBtn) stepBtn.disabled = true;
+        } else {
+            if (playBtn) playBtn.disabled = false;
+            if (pauseBtn) pauseBtn.disabled = true;
+            if (stepBtn) stepBtn.disabled = false;
+        }
+
+        // Add disabled styling
+        [playBtn, pauseBtn, stopBtn, stepBtn, resetBtn].forEach(btn => {
+            if (btn && btn.disabled) {
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+            } else if (btn) {
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
             }
         });
     }
