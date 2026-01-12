@@ -259,6 +259,19 @@ function renderAST(ast) {
     textViewContainer.id = 'ast-text-view';
     textViewContainer.style.display = 'block';
 
+    // Tree view container (D3.js) - Phase 5.3
+    const treeViewContainer = document.createElement('div');
+    treeViewContainer.id = 'ast-tree-view';
+    treeViewContainer.style.display = 'none';
+    treeViewContainer.style.cssText = `
+        display: none;
+        background: var(--bg-secondary);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-top: 1rem;
+        min-height: 400px;
+    `;
+
     if (!ast || ast.length === 0) {
         const noAST = createInfoBox('No AST nodes found', 'warning');
         stageContent.appendChild(noAST);
@@ -267,9 +280,9 @@ function renderAST(ast) {
 
     // Create AST info
     const info = createKeyValue('Total Statements', ast.length.toString());
-    stageContent.appendChild(info);
+    textViewContainer.appendChild(info);
 
-    // Create tree container
+    // Create tree container for text view
     const treeContainer = document.createElement('div');
     treeContainer.style.cssText = `
         background: var(--bg-secondary);
@@ -291,7 +304,57 @@ function renderAST(ast) {
         renderASTNode(node, 1, treeContainer, index === ast.length - 1);
     });
 
-    stageContent.appendChild(treeContainer);
+    textViewContainer.appendChild(treeContainer);
+    stageContent.appendChild(textViewContainer);
+    stageContent.appendChild(treeViewContainer);
+
+    // Toggle functionality - Phase 5.3
+    let astVisualizer = null;
+
+    textViewBtn.addEventListener('click', () => {
+        textViewBtn.style.background = 'var(--accent-primary)';
+        textViewBtn.style.color = 'white';
+        treeViewBtn.style.background = 'var(--bg-tertiary)';
+        treeViewBtn.style.color = 'var(--text-secondary)';
+
+        textViewContainer.style.display = 'block';
+        treeViewContainer.style.display = 'none';
+    });
+
+    treeViewBtn.addEventListener('click', () => {
+        treeViewBtn.style.background = 'var(--accent-primary)';
+        treeViewBtn.style.color = 'white';
+        textViewBtn.style.background = 'var(--bg-tertiary)';
+        textViewBtn.style.color = 'var(--text-secondary)';
+
+        textViewContainer.style.display = 'none';
+        treeViewContainer.style.display = 'block';
+
+        // Initialize D3.js visualizer if not already done - Phase 5.3
+        if (!astVisualizer && typeof ASTVisualizer !== 'undefined') {
+            astVisualizer = new ASTVisualizer('ast-tree-view');
+            astVisualizer.render(ast);
+
+            // Add Advanced Features - Phase 5.3.6
+            if (typeof addASTSearchControls === 'function') {
+                addASTSearchControls('ast-tree-view', astVisualizer);
+            }
+            if (typeof addASTExportControls === 'function') {
+                addASTExportControls('ast-tree-view', astVisualizer);
+            }
+            if (typeof addASTLayoutControls === 'function') {
+                addASTLayoutControls('ast-tree-view', astVisualizer);
+            }
+        } else if (!astVisualizer) {
+            // Fallback if ASTVisualizer not loaded
+            treeViewContainer.innerHTML = `
+                <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                    <p>🌳 D3.js Tree Visualization</p>
+                    <p style="font-size: 0.875rem; margin-top: 0.5rem;">Loading AST Visualizer...</p>
+                </div>
+            `;
+        }
+    });
 }
 
 /**

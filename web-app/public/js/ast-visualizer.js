@@ -559,10 +559,11 @@ class ASTVisualizer {
             .style('cursor', 'pointer');
 
         // Add node shapes based on type - Phase 5.3.2
+        const self = this;
         nodes.each(function (d) {
             const node = d3.select(this);
             const color = d.parent ?
-                (this.colors[d.data.type] || this.colors.default) :
+                (self.colors[d.data.type] || self.colors.default) :
                 '#6366f1'; // Root node special color
 
             const nodeType = d.data.type;
@@ -628,9 +629,9 @@ class ASTVisualizer {
                 })
                 .on('click', (event, d) => {
                     event.stopPropagation();
-                    this.toggleNode(d);
+                    self.toggleNode(d);
                 });
-        }.bind(this));
+        });
 
         // Add collapse indicator (+/-) for nodes with children - Phase 5.3.4
         nodes.each(function (d) {
