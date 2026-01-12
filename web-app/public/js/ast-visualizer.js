@@ -862,6 +862,196 @@ class ASTVisualizer {
     }
 
     /**
+     * Search and highlight nodes - Phase 5.3.6
+     */
+    searchNodes(query) {
+        if (!this.root) return;
+
+        const searchTerm = query.toLowerCase().trim();
+
+        // Reset all node highlights
+        this.g.selectAll('.node').each(function () {
+            d3.select(this).select('circle, rect, path, ellipse')
+                .style('stroke', '#1a202c')
+                .style('stroke-width', 2.5);
+        });
+
+        if (!searchTerm) return;
+
+        // Highlight matching nodes
+        let matchCount = 0;
+        this.g.selectAll('.node').each(function (d) {
+            const nodeName = d.data.name.toLowerCase();
+            const nodeType = d.data.type.toLowerCase();
+
+            if (nodeName.includes(searchTerm) || nodeType.includes(searchTerm)) {
+                d3.select(this).select('circle, rect, path, ellipse')
+                    .style('stroke', '#fbbf24')
+                    .style('stroke-width', 4);
+                matchCount++;
+            }
+        });
+
+        console.log(`Found ${matchCount} matching nodes`);
+    }
+
+    /**
+     * Export tree as SVG - Phase 5.3.6
+     */
+    exportSVG() {
+        if (!this.svg) return;
+
+        const svgNode = this.svg.node();
+        const serializer = new XMLSerializer();
+        let source = serializer.serializeToString(svgNode);
+
+        // Add XML declaration and styling
+        source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+
+        // Create blob and download
+        const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'ast-tree.svg';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        console.log('✓ SVG exported');
+    }
+
+    /**
+     * Export tree as PNG - Phase 5.3.6
+     */
+    exportPNG() {
+        if (!this.svg) return;
+
+        const svgNode = this.svg.node();
+        const serializer = new XMLSerializer();
+        const source = serializer.serializeToString(svgNode);
+
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+
+        const svgBlob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(svgBlob);
+
+        img.onload = () => {
+            canvas.width = this.width;
+            canvas.height = this.height;
+            ctx.fillStyle = '#1e1e2e';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0);
+
+            canvas.toBlob(blob => {
+                const pngUrl = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = pngUrl;
+                link.download = 'ast-tree.png';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(pngUrl);
+                URL.revokeObjectURL(url);
+                console.log('✓ PNG exported');
+            });
+        };
+
+        img.src = url;
+    }
+
+    /**
+     * Set tree layout - Phase 5.3.6
+     */
+    setLayout(layoutType) {
+        if (!this.root) return;
+
+        if (layoutType === 'vertical') {
+            // Default tree layout (top to bottom)
+            this.tree = d3.tree()
+                .size([this.width - 100, this.height - 100])
+                .separation((a, b) => (a.parent === b.parent ? 1 : 1.2));
+        } else if (layoutType === 'horizontal') {
+            // Left to right layout
+            this.tree = d3.tree()
+                .size([this.height - 100, this.width - 100])
+                .separation((a, b) => (a.parent === b.parent ? 1 : 1.2));
+        } else if (layoutType === 'radial') {
+            // Radial layout
+            this.tree = d3.tree()
+                .size([2 * Math.PI, Math.min(this.width, this.height) / 2 - 100])
+                .separation((a, b) => (a.parent === b.parent ? 1 : 1.2) / a.depth);
+        }
+
+        // Re-render with new layout
+        const treeData = this.tree(this.root);
+
+        // Update node positions based on layout
+        if (layoutType === 'radial') {
+            this.g.selectAll('.node')
+                .transition()
+                .duration(750)
+                .attr('transform', d => {
+                    const angle = d.x;
+                    const radius = d.y;
+                    const x = radius * Math.cos(angle - Math.PI / 2);
+                    const y = radius * Math.sin(angle - Math.PI / 2);
+                    return `translate(${x + this.width / 2},${y + this.height / 2})`;
+                });
+
+            this.g.selectAll('.link')
+                .transition()
+                .duration(750)
+                .attr('d', d => {
+                    const sourceAngle = d.source.x;
+                    const sourceRadius = d.source.y;
+                    const targetAngle = d.target.x;
+                    const targetRadius = d.target.y;
+
+                    const x1 = sourceRadius * Math.cos(sourceAngle - Math.PI / 2) + this.width / 2;
+                    const y1 = sourceRadius * Math.sin(sourceAngle - Math.PI / 2) + this.height / 2;
+                    const x2 = targetRadius * Math.cos(targetAngle - Math.PI / 2) + this.width / 2;
+                    const y2 = targetRadius * Math.sin(targetAngle - Math.PI / 2) + this.height / 2;
+
+                    return `M${x1},${y1} C${x1},${(y1 + y2) / 2} ${x2},${(y1 + y2) / 2} ${x2},${y2}`;
+                });
+        } else if (layoutType === 'horizontal') {
+            this.g.selectAll('.node')
+                .transition()
+                .duration(750)
+                .attr('transform', d => `translate(${d.y},${d.x})`);
+
+            this.g.selectAll('.link')
+                .transition()
+                .duration(750)
+                .attr('d', d => {
+                    return `M${d.source.y},${d.source.x} C${(d.source.y + d.target.y) / 2},${d.source.x} ${(d.source.y + d.target.y) / 2},${d.target.x} ${d.target.y},${d.target.x}`;
+                });
+        } else {
+            this.g.selectAll('.node')
+                .transition()
+                .duration(750)
+                .attr('transform', d => `translate(${d.x},${d.y})`);
+
+            this.g.selectAll('.link')
+                .transition()
+                .duration(750)
+                .attr('d', d => {
+                    const sourceX = d.source.x;
+                    const sourceY = d.source.y;
+                    const targetX = d.target.x;
+                    const targetY = d.target.y;
+                    return `M${sourceX},${sourceY} C${sourceX},${(sourceY + targetY) / 2} ${targetX},${(sourceY + targetY) / 2} ${targetX},${targetY}`;
+                });
+        }
+
+        console.log(`✓ Layout changed to: ${layoutType}`);
+    }
+
+    /**
      * Clear the visualization
      */
     clear() {
