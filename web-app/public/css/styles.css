@@ -253,6 +253,100 @@ body {
     animation: spin 0.6s linear infinite;
 }
 
+/* ============================================
+   Animation Keyframes - Phase 5.2.1
+   ============================================ */
+
+/* Fade in from bottom */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Fade in with scale */
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Slide in from right */
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Pulse effect */
+@keyframes pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.05);
+        opacity: 0.9;
+    }
+}
+
+/* Gentle bounce */
+@keyframes bounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+/* Progress bar fill */
+@keyframes fillProgress {
+    from {
+        width: 0%;
+    }
+
+    to {
+        width: 100%;
+    }
+}
+
+/* Shimmer effect */
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+/* Existing spin animation */
 @keyframes spin {
     to {
         transform: rotate(360deg);
@@ -318,11 +412,47 @@ body {
 /* ============================================
    Stage Content
    ============================================ */
+/* Stage Content */
 .stage-content {
     flex: 1;
     padding: var(--spacing-lg);
     overflow-y: auto;
 }
+
+/* Animation Classes - Phase 5.2.1 */
+.stage-content>* {
+    animation: fadeInUp 0.4s ease-out;
+}
+
+.stage-content.animating {
+    opacity: 0;
+}
+
+.stage-content.animated {
+    animation: fadeInScale 0.3s ease-out;
+}
+
+/* Stagger animations for child elements */
+.stage-content>*:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.stage-content>*:nth-child(2) {
+    animation-delay: 0.05s;
+}
+
+.stage-content>*:nth-child(3) {
+    animation-delay: 0.1s;
+}
+
+.stage-content>*:nth-child(4) {
+    animation-delay: 0.15s;
+}
+
+.stage-content>*:nth-child(5) {
+    animation-delay: 0.2s;
+}
+
 
 /* Welcome Message */
 .welcome-message {
