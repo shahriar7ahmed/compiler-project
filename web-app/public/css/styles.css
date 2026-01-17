@@ -747,6 +747,47 @@ body {
     animation: fadeInScale 0.3s ease-out;
 }
 
+/* Error state for progress bar - Phase Error Handling */
+.progress-bar.error {
+    background: linear-gradient(90deg, var(--error), #dc2626);
+    box-shadow: 0 0 10px var(--error);
+}
+
+.progress-stage.error {
+    background: var(--error);
+    color: white;
+    font-weight: 600;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    animation: shake 0.5s ease-out;
+}
+
+.progress-stage.error::after {
+    content: '✗';
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.875rem;
+    animation: fadeInScale 0.3s ease-out;
+}
+
+/* Shake animation for error */
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-5px);
+    }
+
+    75% {
+        transform: translateX(5px);
+    }
+}
+
 
 @keyframes slideIn {
     from {

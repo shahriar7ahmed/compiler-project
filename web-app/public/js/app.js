@@ -149,15 +149,22 @@ async function handleCompile() {
         showLoading(true);
         updateCompileButton(false);
 
-        // Show compilation progress - Phase 5.2.3
-        if (typeof compilationProgress !== 'undefined') {
-            compilationProgress.simulateProgress(1500);
-        }
-
         console.log('Compiling code...');
         compilationData = await compileCode(sourceCode);
 
         console.log('✓ Compilation complete:', compilationData);
+
+        // Update progress based on actual results
+        if (typeof compilationProgress !== 'undefined') {
+            if (compilationData.success) {
+                // Simulate successful progression through all stages
+                await compilationProgress.simulateProgress(1500);
+            } else {
+                // Determine which stage failed and stop there
+                const failedStage = compilationProgress.determineFailedStage(compilationData);
+                compilationProgress.failAtStage(failedStage);
+            }
+        }
 
         // Switch to first stage and render
         currentStage = 1;
