@@ -1,0 +1,12 @@
+// Advanced Demo: Countdown with Conditional Check
+// Showcases: For loop with variables, conditionals inside loops
+
+let threshold = 7;
+
+for countdown = 10 to 1 {
+    if countdown > threshold {
+        print countdown;
+    } else {
+        print 0;
+    }
+}

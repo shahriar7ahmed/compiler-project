@@ -1,0 +1,21 @@
+// Advanced Demo: Complex Conditionals with Arithmetic
+// Showcases: Nested if-else, comparisons, arithmetic operations
+
+let score = 85;
+let bonus = 10;
+let total = score + bonus;
+
+if total >= 90 {
+    print 1;
+    if total >= 95 {
+        print 2;
+    } else {
+        print 3;
+    }
+} else {
+    if total >= 70 {
+        print 4;
+    } else {
+        print 5;
+    }
+}

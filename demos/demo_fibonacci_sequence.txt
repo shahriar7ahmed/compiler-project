@@ -1,0 +1,15 @@
+// Advanced Demo: Fibonacci-style Sequence
+// Showcases: Variables, loops, arithmetic, sequential computation
+
+let prev = 0;
+let curr = 1;
+
+print prev;
+print curr;
+
+for step = 1 to 8 {
+    let next = prev + curr;
+    print next;
+    prev = curr;
+    curr = next;
+}

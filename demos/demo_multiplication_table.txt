@@ -1,0 +1,9 @@
+// Advanced Demo: Nested Loops and Multiplication Table
+// Showcases: Nested for loops, arithmetic, variables
+
+let multiplier = 3;
+
+for i = 1 to 5 {
+    let result = i * multiplier;
+    print result;
+}

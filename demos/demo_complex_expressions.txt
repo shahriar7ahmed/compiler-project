@@ -1,0 +1,18 @@
+// Advanced Demo: Complex Expression Evaluation
+// Showcases: Operator precedence, complex arithmetic, optimization opportunities
+
+let a = 5;
+let b = 3;
+let c = 2;
+
+let expr1 = a + b * c;
+print expr1;
+
+let expr2 = (a + b) * c;
+print expr2;
+
+let expr3 = a * b + c * 4;
+print expr3;
+
+let optimizable = 10 + 20 * 2 - 5;
+print optimizable;
